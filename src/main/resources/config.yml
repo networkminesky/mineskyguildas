@@ -1,0 +1,38 @@
+# =====================================================================
+#    __  ___    _                           __              ______            _     __       __
+#   /  |/  /   (_)   ____   ___    _____   / /__   __  __  / ____/  __  __   (_)   / /  ____/ /  ____ _   _____
+#  / /|_/ /   / /   / __ \ / _ \  / ___/  / //_/  / / / / / / __   / / / /  / /   / /  / __  /  / __ `/  / ___/
+# / /  / /   / /   / / / //  __/ (__  )  / ,<    / /_/ / / /_/ /  / /_/ /  / /   / /  / /_/ /  / /_/ /  (__  )
+#/_/  /_/   /_/   /_/ /_/ \___/ /____/  /_/|_|   \__, /  \____/   \__,_/  /_/   /_/   \__,_/   \__,_/  /____/
+#                                              /____/
+#
+# Configuração Principal do Plugin Guildas
+# =====================================================================
+
+# -----------------------------------------------------------------------------
+# Configuração do MongoDB
+# -----------------------------------------------------------------------------
+mongodb:
+  # Link de conexão com o MongoDB. Exemplo: mongodb://localhost:27017
+  uri: ""
+
+  # Nome do banco de dados onde os dados serão armazenados
+  storage-database: ""
+
+# -----------------------------------------------------------------------------
+# Configurações das Guildas
+# -----------------------------------------------------------------------------
+guilds:
+  create:
+    # Preço necessário para criar uma guilda
+    price: 1500
+
+    # Número máximo de caracteres permitidos na TAG da guilda
+    tag-limit: 4
+
+  invite:
+    # Preço para convidar um jogador para a guilda
+    price: 50
+
+    # Duração do convite em minutos
+    duration: 5
