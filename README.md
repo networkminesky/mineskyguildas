@@ -1,5 +1,5 @@
 # MineSky "Guilds"
-Plugin build on Spigot & PaperMC software.
+Plugin built on Spigot & PaperMC software.
 
 ### Data structure
 
@@ -15,4 +15,5 @@ regions:
     currentAttackerId: guilda_eba-640e17cc
     warStartTime: 1751306005899
     inWar: true
+
 ```
