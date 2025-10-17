@@ -1,12 +1,14 @@
 package com.mongodb.internal.diagnostics.logging;
 
+import net.mineskyguildas.MineSkyGuildas;
+
 public final class Loggers {
 
     // reescrevendo a classe padrão de logging slf4j do MongoDB
     // pra evitar spam no console
 
     private static final String PREFIX = "org.mongodb.driver";
-    private static final java.util.logging.Logger loger = net.minesky.MineSkyGuildas.l;
+    private static final java.util.logging.Logger loger = MineSkyGuildas.l;
 
     public static Logger getLogger(final String suffix) {
         return new LoggerWrapper(loger);

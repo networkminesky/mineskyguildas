@@ -1,6 +1,6 @@
 name: MineSkyGuildas2
-version: '1.0.1-BETA'
-main: net.minesky.MineSkyGuildas
+version: '1.0.2-ALPHA'
+main: net.mineskyguildas.MineSkyGuildas
 api-version: '1.20'
 softdepend:
   - PlaceholderAPI
@@ -11,7 +11,7 @@ commands:
   guildas:
     description: Comandos para gerenciar guildas
     usage: /guilda <subcomando>
-    aliases: [ guilds,guild,guilda ]
+    aliases: [ guilds,guild,guilda, msguilda, msguild ]
   .:
     description: Comando de chat da guilda.
     usage: /. <mensagem>
@@ -24,8 +24,6 @@ commands:
     description: Comando para um chat exclusivo dos líderes da guilda.
     usage: /líderes <mensagem>
     aliases: [lider,líder,lideres]
-  test:
-    description: testando
 
 permissions:
   mineskyguildas.reload:
@@ -34,3 +32,9 @@ permissions:
   mineskyguildas.spy:
     description: Pode ver as mensagens das guildas no Chat da guildas e dos aliados.
     default: op
+  mineskyguildas.admin:
+    description: Todas as permissões do plugin.
+    default: op
+    children:
+      mineskyguildas.spy: true
+      mineskyguildas.reload: true
