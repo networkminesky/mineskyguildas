@@ -8,8 +8,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -36,51 +41,130 @@ public class GuildListMenu implements Listener {
         it.setItemMeta(im);
         return it;
     }
-/*
-    public static void reorganizeItems(Player player, int page) {
-        List<Guilds> guildList = new ArrayList<>(GuildHandler.getGuilds().values());
+
+    public static ItemStack simpleButton(ItemStack it, String name, String... lore) {
+        ItemMeta im = it.getItemMeta();
+        im.setDisplayName("§6§l" + Utils.c(name));
+        im.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
+        im.setLore(Arrays.stream(lore).map(a -> Utils.c("&7" + a)).collect(Collectors.toList()));
+        it.setItemMeta(im);
+        return it;
+    }
+
+    public static void reorganizeItems(Player player, Inventory inv, int page) {
+        List<Guilds> guildsList = new ArrayList<>(GuildHandler.getGuilds().values());
 
         int guildsPerPage = 45;
-        int maxPage = (int) Math.ceil((double) guildList.size() / guildsPerPage);
+        int maxPage = (int) Math.ceil((double) guildsList.size() / guildsPerPage);
         if (maxPage == 0) maxPage = 1;
 
         page = Math.max(1, Math.min(page, maxPage));
         playerPages.put(player, page);
 
-        Inventory inv = Bukkit.createInventory(null, 54, Utils.c("§8Guildas — Página " + page + "/" + maxPage));
-        inventories.put(player, inv);
+        inv.clear();
+
+        ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
+        ItemMeta meta = glass.getItemMeta();
+        meta.setDisplayName(" ");
+        glass.setItemMeta(meta);
+
+        for (int i = 0; i < 9; i++) {
+            inv.setItem(i, glass);
+        }
 
         int start = (page - 1) * guildsPerPage;
-        int end = Math.min(start + guildsPerPage, guildList.size());
+        int end = Math.min(start + guildsPerPage, guildsList.size());
 
+        int slot = 9;
         for (int i = start; i < end; i++) {
-            Guilds g = guildList.get(i);
 
-            ItemStack item = new ItemStack(Material.BOOK);
-            ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName(Utils.c("&6&l" + g.getName() + " &6[&f" + g.getTag() + "&6]"));
+            if (slot % 9 == 0 || slot % 9 == 8) {
+                slot++;
+                if (slot >= 45) break;
+            }
 
-            List<String> lore = new ArrayList<>();
-            lore.add(Utils.c("&6Descrição: &e" + (g.getDescription() == null ? "Sem descrição" : g.getDescription())));
-            lore.add(Utils.c("&6Level: &e" + g.getLevel()));
-            lore.add(Utils.c("&6XP: &e" + g.getXp() + "/" + g.xpRequiredForNextLevel()));
-            lore.add(Utils.c("&6Líder: &e" + Bukkit.getOfflinePlayer(g.getLeader()).getName()));
-            lore.add(Utils.c("&6Membros: &e" + GuildHandler.getOnlineMembers(g)));
-            lore.add(Utils.c("&6Rivais: &e" + (g.getRivals().isEmpty() ? "Nenhum" : String.join("&6, &e", GuildHandler.getRivalsTags(g)))));
-            lore.add(Utils.c("&6Aliados: &e" + (g.getAllies().isEmpty() ? "Nenhum" : String.join("&6, &e", GuildHandler.getAlliesTags(g)))));
-            lore.add(Utils.c(" "));
-            lore.add(Utils.c("&e➳ Clique esquerdo - Ver detalhes"));
-            meta.setLore(lore);
+            Guilds g = guildsList.get(i);
+            if (g == null) continue;
+            int finalSlot = slot;
+            Utils.getGuildInfoAsync(g, it -> inv.setItem(finalSlot, it));
+            slot++;
 
-            item.setItemMeta(meta);
-            inv.addItem(item);
+            if (slot >= 45) break;
         }
 
         inv.setItem(45, simpleButton(Material.ARROW, "Página Anterior", "Voltar uma página."));
-        inv.setItem(49, simpleButton(Material.BARRIER, "Fechar", "Fechar o menu."));
+        inv.setItem(49, simpleButton(Material.RED_WOOL, "Voltar", "Voltar para o menu anterior."));
         inv.setItem(53, simpleButton(Material.ARROW, "Próxima Página", "Avançar uma página."));
+    }
 
+    public static void openMainMenu(Player player) {
+        openMainMenu(player, 1);
+    }
+
+    public static void openMainMenu(Player player, int page) {
+        Inventory inv = Bukkit.createInventory(null, 54, Utils.c("§8Guildas — Página 1"));
+        inventories.put(player, inv);
+        reorganizeItems(player, inv, page);
         player.openInventory(inv);
         player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
-    }*/
+    }
+
+    public static void reopenInventory(Player player) {
+        Inventory inv = inventories.get(player);
+        if (inv == null)
+            return;
+        reorganizeItems(player, inv, playerPages.getOrDefault(player, 1));
+        player.closeInventory();
+        player.openInventory(inv);
+    }
+
+    @EventHandler
+    public void onDrag(InventoryDragEvent e) {
+        if (inventories.containsValue(e.getInventory()))
+            e.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent e) {
+        final Player p = (Player) e.getWhoClicked();
+        final int slot = e.getSlot();
+        final ClickType clickType = e.getClick();
+
+        if (!inventories.containsValue(e.getInventory()))
+            return;
+        e.setCancelled(true);
+
+        switch (slot) {
+            case 45 -> {
+                switch (clickType) {
+                    case RIGHT -> {
+                        p.closeInventory();
+                        return;
+                    }
+                    case LEFT -> {
+                        openMainMenu(p, playerPages.get(p) - 1);
+                    }
+                }
+            }
+            case 49 -> {
+                switch (clickType) {
+                    case RIGHT, LEFT -> {
+                        GuildMenu.openMainMenu(p);
+                        return;
+                    }
+                }
+            }
+            case 53 -> {
+                switch (clickType) {
+                    case RIGHT -> {
+                        p.closeInventory();
+                        return;
+                    }
+                    case LEFT -> {
+                        openMainMenu(p, playerPages.get(p) + 1);
+                    }
+                }
+            }
+        }
+    }
 }

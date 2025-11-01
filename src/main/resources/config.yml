@@ -36,3 +36,7 @@ guilds:
 
     # Duração do convite em minutos
     duration: 5
+
+region-war:
+  price: 5000.0
+  duration-minutes: 30

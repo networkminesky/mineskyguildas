@@ -171,9 +171,16 @@ public class Guilds {
     }
 
     public double xpRequiredForNextLevel() {
-        if (level == 0) return 350;
-        return 1000 * Math.pow(level, 1.5);
+        switch (level) {
+            case 0: return 350;
+            case 1: return 1000;
+            case 2: return 2500;
+            case 3: return 5000;
+            case 4: return 10000;
+            default: return 0;
+        }
     }
+
 
     public ItemStack getBanner() {
         return banner;

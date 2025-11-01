@@ -12,6 +12,7 @@ import net.mineskyguildas.utils.Utils;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -32,7 +33,7 @@ public class AllySubCommand extends SubCommand {
 
     @Override
     public String getUsage() {
-        return "/guilda aliado <adicionar/remover> <guilda>";
+        return "/guilda aliado <adicionar/remover/list> <guilda>";
     }
 
     @Override
@@ -47,7 +48,7 @@ public class AllySubCommand extends SubCommand {
 
     @Override
     public void perform(Player player, String[] args) {
-        if (args.length < 3) {
+        if (args.length < 2) {
             sendError(player, "&c❗ Uso correto: &f/guilda aliado <adicionar/remover> <guilda>");
             return;
         }
@@ -59,7 +60,8 @@ public class AllySubCommand extends SubCommand {
         }
 
         GuildRoles role = guild.getRole(player.getUniqueId());
-        if (!EnumSet.of(GuildRoles.LEADER, GuildRoles.SUB_LEADER).contains(role)) {
+        if (!EnumSet.of(GuildRoles.LEADER, GuildRoles.SUB_LEADER).contains(role) &&
+                !args[1].equalsIgnoreCase("listar") && !args[1].equalsIgnoreCase("list")) {
             sendError(player, "&c🔒 Você não tem permissão para gerenciar alianças.");
             return;
         }
@@ -68,6 +70,11 @@ public class AllySubCommand extends SubCommand {
 
         switch (args[1].toLowerCase()) {
             case "adicionar", "add" -> {
+                if (args.length < 3) {
+                    sendError(player, "&c❗ Uso correto: &f/guilda aliado adicionar <guilda>");
+                    return;
+                }
+
                 Guilds guildaTarget = GuildHandler.getGuildByTag(args[2]);
                 if (guildaTarget == null) {
                     sendError(player, "&c❌ Essa guilda não existe.");
@@ -99,6 +106,11 @@ public class AllySubCommand extends SubCommand {
                 allyHandler.sendRequest(guild, guildaTarget, player);
             }
             case "remover", "remove" -> {
+                if (args.length < 3) {
+                    sendError(player, "&c❗ Uso correto: &f/guilda aliado remover <guilda>");
+                    return;
+                }
+
                 Guilds guildaTarget = GuildHandler.getGuildByTag(args[2]);
                 if (guildaTarget == null) {
                     sendError(player, "&c❌ Essa guilda não existe.");
@@ -123,6 +135,38 @@ public class AllySubCommand extends SubCommand {
                     return;
                 }
                 GuildHandler.removeAlly(guild, guildaTarget, player);
+            }
+            case "listar", "list", "lista" -> {
+                Guilds targetGuild = guild;
+
+                if (args.length >= 3) {
+                    targetGuild = GuildHandler.getGuildByTag(args[2]);
+                    if (targetGuild == null) {
+                        sendError(player, "&c❌ A guilda &f" + args[2] + " &cnão existe.");
+                        return;
+                    }
+                }
+
+                List<String> allyIds = targetGuild.getAllies();
+                List<Guilds> allies = allyIds.stream()
+                        .map(GuildHandler::getGuildByID)
+                        .filter(g -> g != null)
+                        .toList();
+
+                player.sendMessage(Utils.c("&8&m----------------------------------------"));
+                player.sendMessage(Utils.c("&b🤝 Alianças da guilda &f" + targetGuild.getName() + "&b:"));
+                player.sendMessage(Utils.c("&7Total: &f" + allies.size()));
+
+                if (allies.isEmpty()) {
+                    player.sendMessage(Utils.c("&7❌ Nenhuma aliança ativa."));
+                } else {
+                    for (Guilds ally : allies) {
+                        player.sendMessage(Utils.c(" &7• &f" + ally.getName() + " &8(" + ally.getTag() + "&8)"));
+                    }
+                }
+
+                player.sendMessage(Utils.c("&8&m----------------------------------------"));
+                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1.2f);
             }
             default -> {
                 sendError(player, "&c❗ Subcomando inválido. Use: &f/guilda adicionar &cou &f/guilda remover");

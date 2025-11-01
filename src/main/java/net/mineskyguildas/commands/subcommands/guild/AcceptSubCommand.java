@@ -9,6 +9,7 @@ import net.mineskyguildas.data.Guilds;
 import net.mineskyguildas.handlers.GuildHandler;
 import net.mineskyguildas.handlers.requests.GuildRequestHandler;
 import net.mineskyguildas.handlers.requests.GuildRequestType;
+import net.mineskyguildas.handlers.requests.ReagroupHandler;
 import net.mineskyguildas.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
@@ -29,12 +30,12 @@ public class AcceptSubCommand extends SubCommand {
 
     @Override
     public String getDescription() {
-        return "Aceitar um pedido de aliança/rivalidade ou convite";
+        return "Aceitar um pedido de aliança/rivalidade, convite ou reagrupar.";
     }
 
     @Override
     public String getUsage() {
-        return "/guilda aceitar";
+        return "/guild aceitar";
     }
 
     @Override
@@ -51,48 +52,58 @@ public class AcceptSubCommand extends SubCommand {
     public void perform(Player player, String[] args) {
         UUID playerId = player.getUniqueId();
         Guilds ownGuild = GuildHandler.getGuildByPlayer(playerId);
+
         GuildRequestHandler allyHandler = plugin.getRequestManager().getHandler(GuildRequestType.ALLY);
         GuildRequestHandler rivalHandler = plugin.getRequestManager().getHandler(GuildRequestType.RIVAL);
+        ReagroupHandler reagroupHandler = plugin.getReagroupHandler();
 
         boolean hasInvite = plugin.getInviteHandler().hasInvite(playerId);
-        boolean hasAllyRequest = allyHandler.hasRequest(ownGuild);
-        boolean hasRivalRequest = rivalHandler.hasRequest(ownGuild);
+        boolean hasAllyRequest = ownGuild != null && allyHandler.hasRequest(ownGuild);
+        boolean hasRivalRequest = ownGuild != null && rivalHandler.hasRequest(ownGuild);
+        boolean hasReagroup = reagroupHandler.hasRequest(playerId);
 
-        if (!hasInvite && !hasAllyRequest && !hasRivalRequest) {
-            sendError(player, "&c❌ Seu convite ou pedido de aliança/paz expirou.");
+        if (!hasInvite && !hasAllyRequest && !hasRivalRequest && !hasReagroup) {
+            sendError(player, "&c❌ Você não tem nenhum pedido pendente para aceitar.");
+            return;
+        }
+
+        if (hasReagroup) {
+            reagroupHandler.accept(player);
             return;
         }
 
         if (hasAllyRequest) {
             Guilds allyGuild = allyHandler.getRequestGuild(ownGuild);
-
-            GuildAddAllyEvent event = new GuildAddAllyEvent(allyGuild, ownGuild, rivalHandler.getRequester(ownGuild), player);
+            GuildAddAllyEvent event = new GuildAddAllyEvent(allyGuild, ownGuild, allyHandler.getRequester(ownGuild), player);
             plugin.getServer().getPluginManager().callEvent(event);
             if (event.isCancelled()) {
-                player.sendMessage((event.CancelledMessage == null ? Utils.c("&c⚠ Ops! A entrada na guilda foi interrompida pela API.") : event.CancelledMessage));
+                player.sendMessage(event.CancelledMessage == null ? Utils.c("&c⚠ Ops! A aliança foi interrompida pela API.") : event.CancelledMessage);
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1, 1);
                 return;
             }
+
             player.sendMessage(Utils.c("&2🤝 &aVocê aceitou o pedido de aliança da guilda &2" + allyGuild.getName() + "&a!"));
             GuildHandler.addAlly(allyGuild, ownGuild, player);
             allyHandler.removeRequest(ownGuild);
             player.playSound(player, Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);
+            return;
         }
 
         if (hasRivalRequest) {
-            Guilds g = rivalHandler.getRequestGuild(ownGuild);
-
-            GuildRemoveRivalEvent event = new GuildRemoveRivalEvent(g, ownGuild, rivalHandler.getRequester(ownGuild), player);
+            Guilds rivalGuild = rivalHandler.getRequestGuild(ownGuild);
+            GuildRemoveRivalEvent event = new GuildRemoveRivalEvent(rivalGuild, ownGuild, rivalHandler.getRequester(ownGuild), player);
             plugin.getServer().getPluginManager().callEvent(event);
             if (event.isCancelled()) {
-                player.sendMessage((event.CancelledMessage == null ? Utils.c("&c⚠ Ops! A entrada na guilda foi interrompida pela API.") : event.CancelledMessage));
+                player.sendMessage(event.CancelledMessage == null ? Utils.c("&c⚠ Ops! A remoção de rivalidade foi interrompida pela API.") : event.CancelledMessage);
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1, 1);
                 return;
             }
-            player.sendMessage(Utils.c("&2\uD83C\uDFF4 &aVocê aceitou o pedido de paz da guilda &2" + g.getName() + "&a!"));
-            GuildHandler.removeRival(g, ownGuild, player);
+
+            player.sendMessage(Utils.c("&2🕊 &aVocê aceitou o pedido de paz da guilda &2" + rivalGuild.getName() + "&a!"));
+            GuildHandler.removeRival(rivalGuild, ownGuild, player);
             rivalHandler.removeRequest(ownGuild);
             player.playSound(player, Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);
+            return;
         }
 
         if (hasInvite) {
@@ -105,7 +116,7 @@ public class AcceptSubCommand extends SubCommand {
             PlayerJoinGuildEvent event = new PlayerJoinGuildEvent(player, guild);
             plugin.getServer().getPluginManager().callEvent(event);
             if (event.isCancelled()) {
-                player.sendMessage((event.CancelledMessage == null ? Utils.c("&c⚠ Ops! A entrada na guilda foi interrompida pela API.") : event.CancelledMessage));
+                player.sendMessage(event.CancelledMessage == null ? Utils.c("&c⚠ Ops! A entrada na guilda foi interrompida pela API.") : event.CancelledMessage);
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1, 1);
                 return;
             }
@@ -115,7 +126,6 @@ public class AcceptSubCommand extends SubCommand {
             Bukkit.broadcastMessage(Utils.c(msg));
             GuildHandler.addNotice(guild, Utils.c(msg));
             player.sendMessage(Utils.c("&a✅ Você entrou na guilda &2" + guild.getName() + "&a com sucesso!"));
-
             plugin.getInviteHandler().removeInvite(playerId);
             player.playSound(player, Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);
         }

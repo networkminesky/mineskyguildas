@@ -25,7 +25,7 @@ public class BankSubCommand extends SubCommand {
 
     @Override
     public String getUsage() {
-        return "/guilda banco [dar,sacar]";
+        return "/guilda banco [depositar,sacar]";
     }
 
     @Override
@@ -59,7 +59,7 @@ public class BankSubCommand extends SubCommand {
 
         int value = Integer.parseInt(args[2]);
 
-        if(args[1].equalsIgnoreCase("dar")) {
+        if(args[1].equalsIgnoreCase("depositar")) {
             if (Vault.withdraw(player, value)) {
                 guild.deposit(value);
                 GuildHandler.broadcastGuildMessage(guild, "&3\uD83D\uDCB0 &b" + player.getName() + " &3depositou a quantia de &b$" + value + "&3!");

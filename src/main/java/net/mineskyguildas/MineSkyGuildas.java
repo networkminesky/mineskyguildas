@@ -10,13 +10,12 @@ import net.mineskyguildas.config.managers.ConfigManager;
 import net.mineskyguildas.database.MongoDBManager;
 import net.mineskyguildas.database.PlayerDataManager;
 import net.mineskyguildas.enums.GuildChatType;
-import net.mineskyguildas.gui.GuildCreateMenu;
-import net.mineskyguildas.gui.GuildEditMenu;
-import net.mineskyguildas.gui.GuildMenu;
+import net.mineskyguildas.gui.*;
 import net.mineskyguildas.handlers.GuildHandler;
 import net.mineskyguildas.handlers.InviteHandler;
 import net.mineskyguildas.handlers.RegionHandler;
 import net.mineskyguildas.handlers.requests.GuildRequestManager;
+import net.mineskyguildas.handlers.requests.ReagroupHandler;
 import net.mineskyguildas.hooks.GuildasPlaceholder;
 import net.mineskyguildas.hooks.Vault;
 import net.mineskyguildas.listeners.PlayerEvents;
@@ -35,6 +34,7 @@ public final class MineSkyGuildas extends JavaPlugin {
 
     public GuildHandler handler;
     private InviteHandler inviteHandler;
+    private ReagroupHandler reagroupHandler;
     private GuildRequestManager requestManager;
     public GuildasPlaceholder guildasPlaceholder;
     private PlayerDataManager playerData;
@@ -53,6 +53,7 @@ public final class MineSkyGuildas extends JavaPlugin {
         loadMongoDB();
         handler = new GuildHandler();
         inviteHandler = new InviteHandler(this);
+        reagroupHandler = new ReagroupHandler(this);
         requestManager = new GuildRequestManager(this);
         playerData = new PlayerDataManager();
         new RegionHandler(this);
@@ -93,7 +94,10 @@ public final class MineSkyGuildas extends JavaPlugin {
         l.info("Registering event listeners...");
         getServer().getPluginManager().registerEvents(new GuildCreateMenu(this), this);
         getServer().getPluginManager().registerEvents(new GuildMenu(this), this);
+        getServer().getPluginManager().registerEvents(new GuildInfoMenu(this), this);
         getServer().getPluginManager().registerEvents(new GuildEditMenu(this), this);
+        getServer().getPluginManager().registerEvents(new GuildListMenu(this), this);
+        getServer().getPluginManager().registerEvents(new PlayerListMenu(this), this);
         getServer().getPluginManager().registerEvents(new PlayerEvents(this), this);
     }
 
@@ -143,6 +147,10 @@ public final class MineSkyGuildas extends JavaPlugin {
 
     public InviteHandler getInviteHandler() {
         return inviteHandler;
+    }
+
+    public ReagroupHandler getReagroupHandler() {
+        return reagroupHandler;
     }
 
     public GuildRequestManager getRequestManager() {

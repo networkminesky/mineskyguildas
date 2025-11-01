@@ -255,8 +255,8 @@ public class GuildHandler {
     public static void removeRival(Guilds guild, Guilds rival, Player player) {
         guild.removeRival(rival);
         rival.removeRival(guild);
-        broadcastGuildMessage(guild, Utils.c("&2✌ &aA guilda &f" + rival.getName() + " &aremovou a rivalidade com a sua guilda."));
-        broadcastGuildMessage(rival, Utils.c("&a✅ &2" + player.getName() + " &aremovou a rivalidade com a guilda &f" + guild.getName() + "&a."));
+        broadcastGuildMessage(guild, Utils.c("&2✌ &aA guilda &f" + rival.getName() + " &aremoveu a rivalidade com a sua guilda."));
+        broadcastGuildMessage(rival, Utils.c("&a✅ &2" + player.getName() + " &aremoveu a rivalidade com a guilda &f" + guild.getName() + "&a."));
         saveGuildas();
     }
 
@@ -405,7 +405,11 @@ public class GuildHandler {
         Bukkit.getOnlinePlayers().stream()
                 .filter(p -> !recipients.contains(p.getUniqueId()))
                 .filter(p -> p.hasPermission("mineskyguildas.spy"))
-                .forEach(p -> p.sendMessage(spy));
+                .forEach(p -> MineSkyGuildas.getInstance().getPlayerData().getSpy(p.getUniqueId(), spyEnabled -> {
+                    if (spyEnabled) {
+                        p.sendMessage(spy);
+                    }
+                }));
     }
 
     public static void broadcastLeaderChat(Player sender, Guilds guilds, String message) {
@@ -426,10 +430,15 @@ public class GuildHandler {
                 .filter(p -> GuildRoles.isLeadership(guilds.getRole(p.getUniqueId())))
                 .forEach(p -> p.sendMessage(prefix));
 
+
         Bukkit.getOnlinePlayers().stream()
                 .filter(p -> !GuildRoles.isLeadership(guilds.getRole(p.getUniqueId())))
                 .filter(p -> p.hasPermission("mineskyguildas.spy"))
-                .forEach(p -> p.sendMessage(spy));
+                .forEach(p -> MineSkyGuildas.getInstance().getPlayerData().getSpy(p.getUniqueId(), spyEnabled -> {
+                    if (spyEnabled) {
+                        p.sendMessage(spy);
+                    }
+                }));
     }
 
 

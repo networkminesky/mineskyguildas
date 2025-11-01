@@ -32,7 +32,7 @@ public class RivalSubCommand extends SubCommand {
 
     @Override
     public String getUsage() {
-        return "/guilda rival <adicionar/remover> <guilda>";
+        return "/guilda rival <adicionar/remover/list> <guilda>";
     }
 
     @Override
@@ -47,7 +47,7 @@ public class RivalSubCommand extends SubCommand {
 
     @Override
     public void perform(Player player, String[] args) {
-        if (args.length < 3) {
+        if (args.length < 2) {
             sendError(player, "&c❗ Uso correto: &f/guilda rival <adicionar/remover> <guilda>");
             return;
         }
@@ -58,20 +58,25 @@ public class RivalSubCommand extends SubCommand {
             return;
         }
 
-        GuildRoles cargo = guild.getRole(player.getUniqueId());
-        if (!EnumSet.of(GuildRoles.LEADER, GuildRoles.SUB_LEADER).contains(cargo)) {
-            sendError(player, "&c🔒 Você não tem permissão para declarar rivalidade.");
+        GuildRoles role = guild.getRole(player.getUniqueId());
+        if (!EnumSet.of(GuildRoles.LEADER, GuildRoles.SUB_LEADER).contains(role) &&
+                !args[1].equalsIgnoreCase("listar") && !args[1].equalsIgnoreCase("list")) {
+            sendError(player, "&c🔒 Você não tem permissão para gerenciar alianças.");
             return;
         }
 
-        Guilds guildaTarget = GuildHandler.getGuildByTag(args[2]);
-
-        if (guildaTarget == null) {
-            sendError(player, "&c❌ Essa guilda não existe.");
-            return;
-        }
         switch (args[1].toLowerCase()) {
             case "adicionar", "add" -> {
+                if (args.length < 3) {
+                    sendError(player, "&c❗ Uso correto: &f/guilda rival adicionar <guilda>");
+                    return;
+                }
+
+                Guilds guildaTarget = GuildHandler.getGuildByTag(args[2]);
+                if (guildaTarget == null) {
+                    sendError(player, "&c❌ Essa guilda não existe.");
+                    return;
+                }
                 if (guildaTarget.getName().equalsIgnoreCase(guild.getName())) {
                     sendError(player, "&4🤦 &CVocê não pode criar rivalidade com sua própria guilda.");
                     return;
@@ -99,6 +104,16 @@ public class RivalSubCommand extends SubCommand {
             }
 
             case "remover", "remove" -> {
+                if (args.length < 3) {
+                    sendError(player, "&c❗ Uso correto: &f/guilda rival remover <guilda>");
+                    return;
+                }
+
+                Guilds guildaTarget = GuildHandler.getGuildByTag(args[2]);
+                if (guildaTarget == null) {
+                    sendError(player, "&c❌ Essa guilda não existe.");
+                    return;
+                }
                 GuildRequestHandler rivalHandler = plugin.getRequestManager().getHandler(GuildRequestType.RIVAL);
 
                 if (guildaTarget.getName().equalsIgnoreCase(guild.getName())) {
@@ -120,6 +135,39 @@ public class RivalSubCommand extends SubCommand {
                 GuildHandler.broadcastGuildMessage(guild, Utils.c("&3📨 &b" + player.getName() + " &3enviou um pedido de paz para &f" + guildaTarget.getName() + "&3."));
                 rivalHandler.sendRequest(guild, guildaTarget, player);
                 player.sendMessage(Utils.c("&a✔ Um pedido de paz para &f" + guildaTarget.getName() + " &afoi enviada com sucesso."));
+            }
+
+            case "listar", "list", "lista" -> {
+                Guilds targetGuild = guild;
+
+                if (args.length >= 3) {
+                    targetGuild = GuildHandler.getGuildByTag(args[2]);
+                    if (targetGuild == null) {
+                        sendError(player, "&c❌ A guilda &f" + args[2] + " &cnão existe.");
+                        return;
+                    }
+                }
+
+                List<String> rivalIds = targetGuild.getRivals();
+                List<Guilds> rivals = rivalIds.stream()
+                        .map(GuildHandler::getGuildByID)
+                        .filter(g -> g != null)
+                        .toList();
+
+                player.sendMessage(Utils.c("&8&m----------------------------------------"));
+                player.sendMessage(Utils.c("&c⚔ Rivais da guilda &f" + targetGuild.getName() + "&c:"));
+                player.sendMessage(Utils.c("&7Total: &f" + rivals.size()));
+
+                if (rivals.isEmpty()) {
+                    player.sendMessage(Utils.c("&7❌ Nenhuma rival ativo."));
+                } else {
+                    for (Guilds rival : rivals) {
+                        player.sendMessage(Utils.c(" &7• &f" + rival.getName() + " &8(" + rival.getTag() + "&8)"));
+                    }
+                }
+
+                player.sendMessage(Utils.c("&8&m----------------------------------------"));
+                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1.2f);
             }
 
             default -> {

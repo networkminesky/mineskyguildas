@@ -7,23 +7,25 @@ import net.mineskyguildas.data.Guilds;
 import net.mineskyguildas.data.MemberData;
 import net.mineskyguildas.enums.GuildRoles;
 import net.mineskyguildas.handlers.GuildHandler;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.Sound;
+import net.mineskyguildas.hooks.SuperVanishHook;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -170,8 +172,63 @@ public class Utils {
         return tag;
     }
 
+    public static void getGuildInfo(Player p, Consumer<ItemStack> callback) {
+        Guilds g = GuildHandler.getGuildByPlayer(p.getUniqueId());
+        getGuildInfoAsync(g, callback);
+    }
+
+    public static void getGuildInfoAsync(Guilds g, Consumer<ItemStack> callback) {
+        ItemStack it = (g != null && g.getBanner() != null)
+                ? g.getBanner()
+                : new ItemStack(Material.GREEN_BANNER);
+        ItemMeta im = it.getItemMeta();
+
+        String title = (g == null ? "Agente Livre" : g.getName() + " &6[&f" + g.getTag() + "&6]");
+        im.setDisplayName("§6§l" + Utils.c(title));
+        im.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
+
+        if (g == null) {
+            List<String> lore = Arrays.asList(
+                    "&7• Você não está em uma guilda.",
+                    " ",
+                    "&6Preço: &e1,500",
+                    " ",
+                    "&e➳ Clique esquerdo - Para criar uma guilda."
+            );
+            im.setLore(lore.stream().map(Utils::c).collect(Collectors.toList()));
+            it.setItemMeta(im);
+            callback.accept(it);
+            return;
+        }
+
+        GuildStatsManager.calculateGuildStats(g, (totalKills, totalDeaths, kdr) -> {
+            List<String> lore = new ArrayList<>();
+            lore.add("&7• Informações da guilda.");
+            lore.add(" ");
+            lore.add("&6Descrição: &e" + (g.getDescription() == null ? "Sem descrição" : g.getDescription()));
+            lore.add("&6Level: &e" + g.getLevel());
+            lore.add("&6XP: &e" + g.getXp() + "/" + g.xpRequiredForNextLevel());
+            lore.add("&6Líder: &e" + Bukkit.getOfflinePlayer(g.getLeader()).getName());
+            lore.add("&6Membros: &e" + GuildHandler.getOnlineMembers(g));
+            lore.add("&6Kills totais: &e" + totalKills);
+            lore.add("&6Mortes totais: &e" + totalDeaths);
+            lore.add("&6KDR médio: &e" + new DecimalFormat("0.00").format(kdr));
+            lore.add("&6Rivais: &e" + (g.getRivals().isEmpty() ? "Nenhum" : String.join("&6, &e", GuildHandler.getRivalsTags(g))));
+            lore.add("&6Aliados: &e" + (g.getAllies().isEmpty() ? "Nenhum" : String.join("&6, &e", GuildHandler.getAlliesTags(g))));
+            lore.add(" ");
+
+            im.setLore(lore.stream().map(Utils::c).collect(Collectors.toList()));
+            it.setItemMeta(im);
+
+            callback.accept(it);
+        });
+    }
+
+
+
     public static List<String> getOnlinePlayerNames() {
         return Bukkit.getOnlinePlayers().stream()
+                .filter(b -> !SuperVanishHook.isPlayerVanished(b))
                 .map(Player::getName)
                 .collect(Collectors.toList());
     }

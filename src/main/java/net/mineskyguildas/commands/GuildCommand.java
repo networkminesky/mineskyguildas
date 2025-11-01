@@ -15,7 +15,7 @@ import java.util.*;
 
 public class GuildCommand implements CommandExecutor {
 
-    private final Set<SubCommand> subCommands = new HashSet<>();
+    private static final Set<SubCommand> subCommands = new HashSet<>();
 
     public GuildCommand(MineSkyGuildas plugin) {
         Arrays.asList(
@@ -25,6 +25,7 @@ public class GuildCommand implements CommandExecutor {
                 new BankSubCommand(),
                 new BannerSubCommand(),
                 new BaseSubCommand(),
+                new CoordsSubCommand(),
                 new CreateSubCommand(),
                 new DemoteSubCommand(),
                 new DisbandSubCommand(),
@@ -37,6 +38,7 @@ public class GuildCommand implements CommandExecutor {
                 new MembersSubCommand(),
                 new NoticeboardSubCommand(),
                 new PromoteSubCommand(),
+                new ReagroupSubCommand(),
                 new RejectSubCommand(),
                 new RivalSubCommand(),
                 new BankAdminSubCommand(),
@@ -44,7 +46,8 @@ public class GuildCommand implements CommandExecutor {
                 new ForceJoinSubCommand(),
                 new FriendlyFireAdminSubCommand(),
                 new PromoteAdminSubCommand(),
-                new ReloadSubCommand()
+                new ReloadSubCommand(),
+                new SpySubCommand()
         ).forEach(this::register);
     }
 
@@ -56,7 +59,7 @@ public class GuildCommand implements CommandExecutor {
         return subCommands.stream().filter(cmd -> cmd.matches(name)).findFirst();
     }
 
-    private void commandList(CommandSender s) {
+    public static void commandList(CommandSender s) {
         s.sendMessage(Utils.c("&9&lMineSkyGuildas &7v" + MineSkyGuildas.getInstance().getDescription().getVersion()));
         s.sendMessage(Utils.c("&8----------------------------------------"));
         subCommands.stream()

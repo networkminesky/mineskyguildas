@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class GuildTabCompleter implements TabCompleter {
-    private final List<String> subCommands = Arrays.asList("criar", "editar", "acabar", "sair", "expulsar", "promover", "rebaixar", "fogo-amigo", "base", "banco", "convidar", "aceitar", "rejeitar", "estandarte", "aliado", "rival", "anunciar", "mural", "ajuda", "lista", "membros");
+    private final List<String> subCommands = Arrays.asList("criar", "editar", "acabar", "sair", "expulsar", "promover", "rebaixar", "fogo-amigo", "base", "banco", "convidar", "aceitar", "rejeitar", "estandarte", "aliado", "rival", "anunciar", "mural", "ajuda", "lista", "membros", "coordenadas", "reagrupar");
     private final List<String> AdminsubCommands = Arrays.asList("admin");
 
     @Override
@@ -37,13 +37,15 @@ public class GuildTabCompleter implements TabCompleter {
                     completions = getMatches(args[1], Utils.getGuildsTags());
                 }
             } else if (args[0].equalsIgnoreCase("banco")) {
-                completions = getMatches(args[1], Arrays.asList("dar", "sacar", "saldo"));
+                completions = getMatches(args[1], Arrays.asList("depositar", "sacar", "saldo"));
+            } else if (args[0].equalsIgnoreCase("reagrupar")) {
+                completions = getMatches(args[1], Arrays.asList("base"));
             } else if (args[0].equalsIgnoreCase("base")) {
                 completions = getMatches(args[1], Arrays.asList("setar", "teleportar"));
             } else if (args[0].equalsIgnoreCase("convidar")) {
                 completions = getMatches(args[1], Utils.getOnlinePlayerNames());
             } else if (args[0].equalsIgnoreCase("aliado") || args[0].equalsIgnoreCase("rival")) {
-                completions = getMatches(args[1], Arrays.asList("adicionar", "remover"));
+                completions = getMatches(args[1], Arrays.asList("adicionar", "remover", "lista"));
             } else if (args[0].equalsIgnoreCase("promover") || args[0].equalsIgnoreCase("rebaixar") || args[0].equalsIgnoreCase("expulsar")) {
                 if (s instanceof Player player) {
                     completions = getMatches(args[1], Utils.getGuildMembersNamePerPlayer(player));

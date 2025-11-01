@@ -26,6 +26,9 @@ commands:
     aliases: [lider,líder,lideres]
 
 permissions:
+  mineskyguildas.kdr.exclude:
+    description: Permissão de excluir do sistema de KDR.
+    default: false
   mineskyguildas.reload:
     description: Pode reiniciar as configurações e reconectar o MongoDB das guildas.
     default: op

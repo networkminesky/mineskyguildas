@@ -61,31 +61,22 @@ public class PlayerEvents implements Listener {
 
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
-        if (!(e.getEntity() instanceof Player)) return;
-
-        Player victim = (Player) e.getEntity();
-        Player damager = null;
-
-        if (e.getDamager() instanceof Player) {
-            damager = (Player) e.getDamager();
-        } else {
-            Object shooter = null;
-            try {
-                shooter = e.getDamager().getClass().getMethod("getShooter").invoke(e.getDamager());
-            } catch (Exception ignored) {}
-            if (shooter instanceof Player) {
-                damager = (Player) shooter;
-            }
+        if (!(e.getEntity() instanceof Player damaged) || !(e.getDamager() instanceof Player damager)) {
+            return;
         }
 
-        if (damager == null) return;
+        Guilds damagedGuild = GuildHandler.getGuildByPlayer(damaged.getUniqueId());
+        Guilds damagerGuild = GuildHandler.getGuildByPlayer(damager.getUniqueId());
 
-        Guilds g = GuildHandler.getGuildByPlayer(victim);
-        if (!g.equals(GuildHandler.getGuildByPlayer(damager))) return;
+        if (damagedGuild == null || damagerGuild == null) {
+            return;
+        }
 
-        if (!g.getFriendlyFire()) {
-            e.setCancelled(true);
-            damager.sendMessage("§c⚠ Fogo amigo está desabilitado - você não pode ferir membros da sua guilda.");
+        if (damagedGuild.getId().equals(damagerGuild.getId()) || damagedGuild.isAlly(damagerGuild)) {
+            if (!damagedGuild.getFriendlyFire()) {
+                e.setCancelled(true);
+                damager.sendMessage(Utils.c("&cVocê não pode atacar membros da sua guilda ou aliados!"));
+            }
         }
     }
 
@@ -94,10 +85,10 @@ public class PlayerEvents implements Listener {
         Player killed = e.getEntity();
         Player killer = killed.getKiller();
 
-       // plugin.getPlayerData().addDeath(killed.getUniqueId(), 1);
+        plugin.getPlayerData().addDeath(killed.getUniqueId(), 1);
         if (killer == null) return;
 
-    //    plugin.getPlayerData().addKill(killer.getUniqueId(), 1);
+        plugin.getPlayerData().addKill(killer.getUniqueId(), 1);
 
         Guilds killedGuild = GuildHandler.getGuildByPlayer(killed.getUniqueId());
         Guilds killerGuild = GuildHandler.getGuildByPlayer(killer.getUniqueId());
@@ -119,7 +110,7 @@ public class PlayerEvents implements Listener {
 
         Guilds guild = GuildHandler.getGuildByPlayer(killer.getUniqueId());
         if (guild != null) {
-            GuildHandler.addXpToGuild(killer.getUniqueId(), 1.0);
+            GuildHandler.addXpToGuild(killer.getUniqueId(), 0.5);
             killer.spigot().sendMessage(ChatMessageType.ACTION_BAR,
                     new TextComponent(Utils.c("&7☠ &4+&c1 XP &4para sua guilda por derrotar um mob hostil&c!")));
         }
@@ -130,34 +121,17 @@ public class PlayerEvents implements Listener {
         if (!(e.getKiller() instanceof Player player)) return;
 
         Guilds guild = GuildHandler.getGuildByPlayer(player.getUniqueId());
-        if (guild == null ) return;
+        if (guild == null) return;
 
         EntityType type = e.getEntity().getType();
 
         boolean isHostile = (type == EntityType.HUSK);
 
         if (isHostile) {
-            GuildHandler.addXpToGuild(player.getUniqueId(), 10);
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                   new TextComponent(Utils.c("&7☠ &4+&c10 XP &4para sua guilda por derrotar um mob hostil&c!")));
-        } else if (type == EntityType.PIG) {
             GuildHandler.addXpToGuild(player.getUniqueId(), 5);
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                    new TextComponent(Utils.c("&7☠ &4+&c5 XP &4para sua guilda por derrotar um mob pacífico&c!")));
-        } else {
-            GuildHandler.addXpToGuild(player.getUniqueId(), 10);
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                    new TextComponent(Utils.c("&7☠ &4+&c10 XP &4para sua guilda por derrotar um mob hostil&c!")));
+                    new TextComponent(Utils.c("&7☠ &4+&c5 XP &4para sua guilda por derrotar um mob hostil&c!")));
         }
     }
-    // Sistema de quando o player finalizar a quest e ganhar xp (Implementar sistema de nível da quest também)
-    /*@EventHandler
-    public void onQuestFinish(QuestFinishEvent e) {
-        Player player = e.getPlayer();
-
-        Guilds guilds = GuildHandler.getGuildByPlayer(player.getUniqueId());
-        if (guilds != null) {
-            GuildHandler.addXpToGuild(player.getUniqueId(), 1);
-        }
-    }*/
 }
+

@@ -4,6 +4,7 @@ import net.mineskyguildas.commands.subcommands.SubCommand;
 import net.mineskyguildas.data.Guilds;
 import net.mineskyguildas.enums.GuildRoles;
 import net.mineskyguildas.handlers.GuildHandler;
+import net.mineskyguildas.hooks.SuperVanishHook;
 import net.mineskyguildas.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -59,7 +60,7 @@ public class MembersSubCommand extends SubCommand {
 
             String name = offlinePlayer.getName() != null ? offlinePlayer.getName() : "&cDesconhecido";
             String role = GuildRoles.getLabelRole(guild.getMemberData(memberId).getRole());
-            String status = offlinePlayer.isOnline() ? "&aONLINE" : "&cOFFLINE";
+            String status = offlinePlayer.isOnline() && !SuperVanishHook.isPlayerVanished(offlinePlayer.getPlayer()) ? "&aONLINE" : "&cOFFLINE";
 
             player.sendMessage(Utils.c(String.format("&3%d&7. &b%s &7- &3%s &8(%s&8)", i++, name, role, status)));
         }

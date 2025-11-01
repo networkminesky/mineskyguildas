@@ -4,6 +4,7 @@ import net.mineskyguildas.commands.subcommands.SubCommand;
 import net.mineskyguildas.data.Guilds;
 import net.mineskyguildas.enums.GuildRoles;
 import net.mineskyguildas.handlers.GuildHandler;
+import net.mineskyguildas.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -81,5 +82,6 @@ public class KickSubCommand extends SubCommand {
 
         GuildHandler.removeMember(who, guild);
         GuildHandler.broadcastGuildMessage(guild, "&3\uD83D\uDEA7 &b" + who.getName() + " &3expulso por &b" + player.getName() + "&3.");
+        who.sendMessage(Utils.c("&4\uD83D\uDEA7 &cVocê foi expulso da " + guild.getName()));
     }
 }
