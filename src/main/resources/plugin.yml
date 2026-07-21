@@ -1,11 +1,12 @@
 name: MineSkyGuildas2
 version: '1.0.2-ALPHA'
 main: net.mineskyguildas.MineSkyGuildas
-api-version: '1.20'
+api-version: '26.1'
 softdepend:
   - PlaceholderAPI
   - WorldGuard
 authors: [zBrunoC (Bruno C.)]
+folia-supported: true
 
 commands:
   guildas:

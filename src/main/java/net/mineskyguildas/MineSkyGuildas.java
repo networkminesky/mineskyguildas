@@ -124,10 +124,7 @@ public final class MineSkyGuildas extends JavaPlugin {
     }
 
     private void initializeTicks() {
-        Bukkit.getScheduler().runTaskTimer(this, () -> {
-            for (Guilds guild : GuildHandler.getGuilds().values()) {
-                guild.removeOldNotices();
-            }
+        getServer().getGlobalRegionScheduler().runAtFixedRate(this, task -> {
             GuildHandler.saveGuildas();
         }, 0L, 20L * 60 * 60 * 24);
     }
@@ -140,10 +137,6 @@ public final class MineSkyGuildas extends JavaPlugin {
     public GuildHandler getGuildHandler() {
         return handler;
     }
-
-    /*public RegionHandler getRegionHandler() {
-        return new RegionHandler(this);
-    }*/
 
     public InviteHandler getInviteHandler() {
         return inviteHandler;
