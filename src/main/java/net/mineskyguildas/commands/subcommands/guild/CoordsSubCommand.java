@@ -3,9 +3,8 @@ package net.mineskyguildas.commands.subcommands.guild;
 import net.mineskyguildas.MineSkyGuildas;
 import net.mineskyguildas.commands.subcommands.SubCommand;
 import net.mineskyguildas.data.Guilds;
-import net.mineskyguildas.enums.GuildRoles;
 import net.mineskyguildas.handlers.GuildHandler;
-import net.mineskyguildas.hooks.SuperVanishHook;
+import net.mineskyguildas.hooks.MineSkyVanishHook;
 import net.mineskyguildas.hooks.WorldGuardHook;
 import net.mineskyguildas.utils.Utils;
 import org.bukkit.Bukkit;
@@ -68,7 +67,7 @@ public class CoordsSubCommand extends SubCommand {
 
                 MineSkyGuildas.getInstance().getPlayerData().getStatusCoord(p.getUniqueId(), isPublic -> {
                     if (!isPublic) return;
-                    if (SuperVanishHook.isPlayerVanished(p.getPlayer())) return;
+                    if (MineSkyVanishHook.isPlayerVanished(p.getPlayer())) return;
 
                     Player onlineMember = p.getPlayer();
                     if (onlineMember == null) return;

@@ -4,10 +4,9 @@ import net.md_5.bungee.api.ChatColor;
 import net.mineskyguildas.MineSkyGuildas;
 import net.mineskyguildas.config.Config;
 import net.mineskyguildas.data.Guilds;
-import net.mineskyguildas.data.MemberData;
 import net.mineskyguildas.enums.GuildRoles;
 import net.mineskyguildas.handlers.GuildHandler;
-import net.mineskyguildas.hooks.SuperVanishHook;
+import net.mineskyguildas.hooks.MineSkyVanishHook;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -228,7 +227,7 @@ public class Utils {
 
     public static List<String> getOnlinePlayerNames() {
         return Bukkit.getOnlinePlayers().stream()
-                .filter(b -> !SuperVanishHook.isPlayerVanished(b))
+                .filter(b -> !MineSkyVanishHook.isPlayerVanished(b))
                 .map(Player::getName)
                 .collect(Collectors.toList());
     }
