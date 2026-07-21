@@ -13,13 +13,11 @@ import net.mineskyguildas.enums.GuildChatType;
 import net.mineskyguildas.gui.*;
 import net.mineskyguildas.handlers.GuildHandler;
 import net.mineskyguildas.handlers.InviteHandler;
-import net.mineskyguildas.handlers.RegionHandler;
 import net.mineskyguildas.handlers.requests.GuildRequestManager;
 import net.mineskyguildas.handlers.requests.ReagroupHandler;
 import net.mineskyguildas.hooks.GuildasPlaceholder;
 import net.mineskyguildas.hooks.Vault;
 import net.mineskyguildas.listeners.PlayerEvents;
-import net.mineskyguildas.data.Guilds;
 import org.bson.Document;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -56,7 +54,6 @@ public final class MineSkyGuildas extends JavaPlugin {
         reagroupHandler = new ReagroupHandler(this);
         requestManager = new GuildRequestManager(this);
         playerData = new PlayerDataManager();
-        new RegionHandler(this);
         registerEvents();
         registerCommands();
         registerHooks();
@@ -126,7 +123,7 @@ public final class MineSkyGuildas extends JavaPlugin {
     private void initializeTicks() {
         getServer().getGlobalRegionScheduler().runAtFixedRate(this, task -> {
             GuildHandler.saveGuildas();
-        }, 0L, 20L * 60 * 60 * 24);
+        }, 1L, 20L * 60 * 60 * 24);
     }
 
     private void initializeAPI() {

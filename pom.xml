@@ -59,8 +59,7 @@
     <dependency>
       <groupId>org.mongodb</groupId>
       <artifactId>mongodb-driver-sync</artifactId>
-      <version>4.10.2</version>
-      <scope>provided</scope>
+      <version>5.9.0</version>
     </dependency>
 
     <dependency>
@@ -92,7 +91,7 @@
     <dependency>
       <groupId>com.github.zBrunoC</groupId>
       <artifactId>mineskyvanish</artifactId>
-      <version>ba0090ca66</version>
+      <version>1.0.0</version>
       <scope>provided</scope>
     </dependency>
 
@@ -102,7 +101,6 @@
       <version>5.12.1</version>
       <scope>provided</scope>
     </dependency>
-
   </dependencies>
 
   <build>
@@ -126,9 +124,46 @@
         <executions>
           <execution>
             <phase>package</phase>
-            <goals><goal>shade</goal></goals>
+            <goals>
+              <goal>shade</goal>
+            </goals>
           </execution>
         </executions>
+        <configuration>
+          <createDependencyReducedPom>false</createDependencyReducedPom>
+          <relocations>
+            <relocation>
+              <pattern>com.mongodb</pattern>
+              <shadedPattern>net.mineskyguildas.shaded.mongodb</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.bson</pattern>
+              <shadedPattern>net.mineskyguildas.shaded.bson</shadedPattern>
+            </relocation>
+          </relocations>
+          <filters>
+            <filter>
+              <artifact>*:*</artifact>
+              <excludes>
+                <exclude>META-INF/*.SF</exclude>
+                <exclude>META-INF/*.DSA</exclude>
+                <exclude>META-INF/*.RSA</exclude>
+              </excludes>
+            </filter>
+          </filters>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+            <version>9.8</version>
+          </dependency>
+          <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm-commons</artifactId>
+            <version>9.8</version>
+          </dependency>
+        </dependencies>
       </plugin>
     </plugins>
 
