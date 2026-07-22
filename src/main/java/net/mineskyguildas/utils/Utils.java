@@ -99,50 +99,8 @@ public class Utils {
                 Double.parseDouble(location[2]),
                 Double.parseDouble(location[3]),
                 Float .parseFloat (location[4]),
-                Float .parseFloat (location[5]))
-                ;
+                Float .parseFloat (location[5]));
     }
-
-   /* public static void awaitChatInput(Player player, ChatInputCallback callback) {
-        player.sendTitle("§9§lDigite no chat", "§7Digite 'sair' para voltar!", 5, 60, 20);
-
-        player.closeInventory();
-
-        Listener listener = new Listener() {
-            @EventHandler(ignoreCancelled = false, priority = EventPriority.LOWEST)
-            public void onChat(AsyncPlayerChatEvent e) {
-
-                Bukkit.getScheduler().runTask(MineSkyGuildas.getInstance(), () -> {
-                    if(!e.getPlayer().equals(player))
-                        return;
-
-                    final String msg = e.getMessage();
-
-                    switch(msg.toLowerCase()) {
-                        case "cancel":
-                        case "cancelar":
-                        case "close":
-                        case "sair": {
-                            callback.onCancel();
-
-                            e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.ENTITY_VILLAGER_NO,1, 1);
-                            e.getPlayer().sendMessage(Utils.c("&cCancelando e retornando ao menu..."));
-
-                            AsyncPlayerChatEvent.getHandlerList().unregister(this);
-                            return;
-                        }
-                    }
-
-                    e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.ENTITY_VILLAGER_YES,1, 1);
-
-                    AsyncPlayerChatEvent.getHandlerList().unregister(this);
-                    callback.onInput(c(msg));
-                });
-
-            }
-        };
-        Bukkit.getServer().getPluginManager().registerEvents(listener, MineSkyGuildas.getInstance());
-    }*/
 
     public static final String BLUE_COLOR = net.md_5.bungee.api.ChatColor.of("#3d85c6")+"";
 
@@ -159,8 +117,6 @@ public class Utils {
 
         return tag.length() <= Config.GuildTagLimit;
     }
-
-
 
     public static String getTag(String tag) {
         if (tag == null || tag.isEmpty()) return null;
@@ -223,8 +179,6 @@ public class Utils {
         });
     }
 
-
-
     public static List<String> getOnlinePlayerNames() {
         return Bukkit.getOnlinePlayers().stream()
                 .filter(b -> !MineSkyVanishHook.isPlayerVanished(b))
@@ -269,27 +223,26 @@ public class Utils {
         return GuildHandler.getGuilds().values().stream()
                 .filter(g -> playerGuild == null || !g.getId().equals(playerGuild.getId()))
                 .map(g -> getTag(g.getTag()))
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public static List<String> getGuildsTags() {
         return GuildHandler.getGuilds().values().stream()
                 .map(g -> getTag(g.getTag()))
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public static List<String> getGuildsName() {
         return GuildHandler.getGuilds().values().stream()
                 .map(Guilds::getName)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public static List<String> getGuildsId() {
         return GuildHandler.getGuilds().values().stream()
                 .map(Guilds::getId)
-                .toList();
+                .collect(Collectors.toList());
     }
-
 
     public static void removeGuildsAlliesAndRivalsOnDelete(Guilds g) {
         GuildHandler.getGuilds().values().forEach(g2 -> {
@@ -302,8 +255,6 @@ public class Utils {
         });
         GuildHandler.saveGuildas();
     }
-
-
 
     public static String encodeItem(ItemStack item) {
         if (item == null) return null;
@@ -329,6 +280,14 @@ public class Utils {
         }
     }
 
+    public static void runOnPlayer(Player player, Runnable runnable) {
+        try {
+            player.getScheduler().run(MineSkyGuildas.getInstance(), task -> runnable.run(), null);
+        } catch (Throwable t) {
+            Bukkit.getScheduler().runTask(MineSkyGuildas.getInstance(), runnable);
+        }
+    }
+
     public static class ChatListener implements Listener {
         private final Player player;
         private final ChatInputCallback callback;
@@ -342,7 +301,9 @@ public class Utils {
         public void onChat(AsyncPlayerChatEvent e) {
             if (!e.getPlayer().equals(player)) return;
 
-            Bukkit.getScheduler().runTask(MineSkyGuildas.getInstance(), () -> {
+            e.setCancelled(true);
+
+            Utils.runOnPlayer(e.getPlayer(), () -> {
                 String msg = e.getMessage();
 
                 if (msg.equalsIgnoreCase("cancel") || msg.equalsIgnoreCase("cancelar") ||
@@ -389,30 +350,30 @@ public class Utils {
     }
 
     public static String getRoleTagColor(GuildRoles role) {
-            switch (role) {
-                case LEADER:
-                    return "&4♦";
-                case SUB_LEADER:
-                    return "&c♦";
-                case CAPTAIN:
-                    return "&6♦";
-                case RECRUITER:
-                    return "&e♦";
-                case LOYAL:
-                    return "&a♦";
-                case MEMBER:
-                    return "&9♦";
-                case RECRUIT:
-                    return "&8♦";
-                default:
-                    return "";
-            }
+        switch (role) {
+            case LEADER:
+                return "&4♦";
+            case SUB_LEADER:
+                return "&c♦";
+            case CAPTAIN:
+                return "&6♦";
+            case RECRUITER:
+                return "&e♦";
+            case LOYAL:
+                return "&a♦";
+            case MEMBER:
+                return "&9♦";
+            case RECRUIT:
+                return "&8♦";
+            default:
+                return "";
         }
+    }
 
-        public static String getGuildTagWithRole(UUID playerId) {
-            Guilds guild = GuildHandler.getGuildByPlayer(playerId);
-            GuildRoles role = guild.getRole(playerId);
+    public static String getGuildTagWithRole(UUID playerId) {
+        Guilds guild = GuildHandler.getGuildByPlayer(playerId);
+        GuildRoles role = guild.getRole(playerId);
 
-            return " " + guild.getTag() + getRoleTagColor(role);
-        }
+        return " " + guild.getTag() + getRoleTagColor(role);
+    }
 }

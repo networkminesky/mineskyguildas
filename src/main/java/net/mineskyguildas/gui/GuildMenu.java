@@ -24,11 +24,14 @@ import org.bukkit.inventory.meta.SkullMeta;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class GuildMenu implements Listener {
     private final MineSkyGuildas plugin;
-    public static HashMap<Player, Inventory> inventories = new HashMap<>();
+
+    public static final Map<UUID, Inventory> inventories = new HashMap<>();
 
     public GuildMenu(MineSkyGuildas plugin) {
         this.plugin = plugin;
@@ -37,71 +40,50 @@ public class GuildMenu implements Listener {
     public static ItemStack simpleButton(Material m, String name, String... lore) {
         return simpleButton(m, name, 1, lore);
     }
+
     public static ItemStack simpleButton(Material m, String name, int count, String... lore) {
         ItemStack it = new ItemStack(m, count);
         ItemMeta im = it.getItemMeta();
-
-        im.setDisplayName("§6§l"+ Utils.c(name));
-
-        im.setLore(Arrays.stream(lore)
-                .map(a -> Utils.c("&7"+a))
-                .collect(Collectors.toList()));
-
-        it.setItemMeta(im);
+        if (im != null) {
+            im.setDisplayName("§6§l" + Utils.c(name));
+            im.setLore(Arrays.stream(lore)
+                    .map(a -> Utils.c("&7" + a))
+                    .collect(Collectors.toList()));
+            it.setItemMeta(im);
+        }
         return it;
     }
 
     public static ItemStack simpleButton(ItemStack it, String name, String... lore) {
         ItemMeta im = it.getItemMeta();
-
-        im.setDisplayName("§6§l"+Utils.c(name));
-        im.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
-
-        im.setLore(Arrays.stream(lore)
-                .map(a -> Utils.c("&7"+a))
-                .collect(Collectors.toList()));
-
-        it.setItemMeta(im);
+        if (im != null) {
+            im.setDisplayName("§6§l" + Utils.c(name));
+            im.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
+            im.setLore(Arrays.stream(lore)
+                    .map(a -> Utils.c("&7" + a))
+                    .collect(Collectors.toList()));
+            it.setItemMeta(im);
+        }
         return it;
     }
 
     public static ItemStack simpleButton(Material m, Player player, String name, String... lore) {
         ItemStack it = new ItemStack(m, 1);
         SkullMeta im = (SkullMeta) it.getItemMeta();
-        im.setOwningPlayer(player);
-        im.setDisplayName("§6§l"+Utils.c(name));
-
-        im.setLore(Arrays.stream(lore)
-                .map(a -> Utils.c("&7"+a))
-                .collect(Collectors.toList()));
-
-        it.setItemMeta(im);
+        if (im != null) {
+            im.setOwningPlayer(player);
+            im.setDisplayName("§6§l" + Utils.c(name));
+            im.setLore(Arrays.stream(lore)
+                    .map(a -> Utils.c("&7" + a))
+                    .collect(Collectors.toList()));
+            it.setItemMeta(im);
+        }
         return it;
     }
 
     private static void reorganizeItems(Player player, Inventory inv) {
         Guilds guild = GuildHandler.getGuildByPlayer(player.getUniqueId());
-        MineSkyGuildas.getInstance().getPlayerData().getKills(player.getUniqueId(), kills -> {
-            MineSkyGuildas.getInstance().getPlayerData().getDeaths(player.getUniqueId(), deaths -> {
-                double kdr = (deaths == 0 ? kills : ((double) kills / deaths));
 
-                inv.setItem(0, simpleButton(
-                        Material.PLAYER_HEAD,
-                        player,
-                        player.getName(),
-                        "• Suas informações de guilda.",
-                        " ",
-                        "&6Guilda: &e" + (guild == null ? "Sem Guilda" : guild.getName()) +
-                                (guild == null ? "" : " &6[&f" + guild.getTag() + "&6]"),
-                        "&6Cargo: &e" + (guild == null ? "Nenhum" : GuildRoles.getLabelRole(guild.getRole(player.getUniqueId()))),
-                        "&6Mortes: &e" + deaths,
-                        "&6Kills: &e" + kills,
-                        "&6KDR: &e" + new DecimalFormat("0.00").format(kdr)
-                ));
-            });
-        });
-
-        Utils.getGuildInfo(player, itemStack -> inv.setItem(1, itemStack));
         inv.setItem(3, simpleButton(
                 Material.PLAYER_HEAD, "Jogadores", "• Veja todos os jogadores do servidor.",
                 "",
@@ -118,59 +100,74 @@ public class GuildMenu implements Listener {
                 "&e➳ Clique esquerdo - Para visualizar."
         ));
 
+        Utils.getGuildInfo(player, itemStack -> {
+            player.getScheduler().run(MineSkyGuildas.getInstance(), task -> inv.setItem(1, itemStack), null);
+        });
+
+        MineSkyGuildas.getInstance().getPlayerData().getKills(player.getUniqueId(), kills -> {
+            MineSkyGuildas.getInstance().getPlayerData().getDeaths(player.getUniqueId(), deaths -> {
+                double kdr = (deaths == 0 ? kills : ((double) kills / deaths));
+
+                ItemStack playerHead = simpleButton(
+                        Material.PLAYER_HEAD,
+                        player,
+                        player.getName(),
+                        "• Suas informações de guilda.",
+                        " ",
+                        "&6Guilda: &e" + (guild == null ? "Sem Guilda" : guild.getName()) +
+                                (guild == null ? "" : " &6[&f" + guild.getTag() + "&6]"),
+                        "&6Cargo: &e" + (guild == null ? "Nenhum" : GuildRoles.getLabelRole(guild.getRole(player.getUniqueId()))),
+                        "&6Mortes: &e" + (int) deaths,
+                        "&6Kills: &e" + (int) kills,
+                        "&6KDR: &e" + new DecimalFormat("0.00").format(kdr)
+                );
+
+                player.getScheduler().run(MineSkyGuildas.getInstance(), task -> inv.setItem(0, playerHead), null);
+            });
+        });
     }
 
     public static void openMainMenu(Player player) {
         Inventory inv = Bukkit.createInventory(null, 9, "MineSky - Menu de guildas");
-
-        inventories.put(player, inv);
-
+        inventories.put(player.getUniqueId(), inv);
         reorganizeItems(player, inv);
-
         player.openInventory(inv);
     }
 
     public static void reopenInventory(Player player) {
-        Inventory inv = inventories.get(player);
-        if(inv == null)
-            return;
+        Inventory inv = inventories.get(player.getUniqueId());
+        if (inv == null) return;
 
         reorganizeItems(player, inv);
-
-        player.closeInventory();
         player.openInventory(inv);
     }
 
     @EventHandler
     public void onDrag(InventoryDragEvent e) {
-        if(inventories.containsValue(e.getInventory()))
+        if (inventories.containsValue(e.getInventory())) {
             e.setCancelled(true);
+        }
     }
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent e) {
-        final Player p = (Player) e.getWhoClicked();
-        final int slot = e.getSlot();
-        final ClickType clickType = e.getClick();
-
-        if(!inventories.containsValue(e.getInventory()))
-            return;
+        if (!(e.getWhoClicked() instanceof Player p)) return;
+        if (!inventories.containsValue(e.getInventory())) return;
 
         e.setCancelled(true);
+        final int slot = e.getSlot();
+
         switch (slot) {
             case 1 -> {
-                Guilds g = GuildHandler.getGuildByPlayer(p);
+                Guilds g = GuildHandler.getGuildByPlayer(p.getUniqueId());
                 if (g == null) {
                     GuildCreateMenu.openMainMenu(p, new GuildBuilder(p.getUniqueId()));
+                } else {
+                    GuildInfoMenu.openMainMenu(p);
                 }
-                GuildInfoMenu.openMainMenu(p);
             }
-            case 3 -> {
-                PlayerListMenu.openMainMenu(p);
-            }
-            case 4 -> {
-                GuildListMenu.openMainMenu(p);
-            }
+            case 3 -> PlayerListMenu.openMainMenu(p);
+            case 4 -> GuildListMenu.openMainMenu(p);
             case 8 -> {
                 p.closeInventory();
                 GuildCommand.commandList(p);

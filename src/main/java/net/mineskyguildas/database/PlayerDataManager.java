@@ -8,7 +8,6 @@ import net.minesky.core.databridge.callbacks.FindOneCallback;
 import net.minesky.core.databridge.callbacks.FindValueCallback;
 import net.minesky.core.databridge.callbacks.SetOneCallback;
 import org.bson.Document;
-import org.bukkit.Bukkit;
 
 import java.util.UUID;
 
@@ -104,10 +103,16 @@ public class PlayerDataManager {
     public void getKDR(UUID uuid, PlayerValueReturnCallback callback) {
         PlayerDatabase.getPlayerDataAsync(uuid.toString(), new FindOneCallback() {
             @Override
-            public void onQueryError(ErrorType errorType) {}
+            public void onQueryError(ErrorType errorType) {
+                callback.onQueryDone(0.0);
+            }
 
             @Override
             public void onQueryDone(Document document) {
+                if (document == null) {
+                    callback.onQueryDone(0.0);
+                    return;
+                }
                 int kills = parseIntSafe(document.get("kills"));
                 int deaths = parseIntSafe(document.get("deaths"));
 
@@ -120,10 +125,16 @@ public class PlayerDataManager {
     public void getKills(UUID uuid, PlayerValueReturnCallback callback) {
         PlayerDatabase.getPlayerDataAsync(uuid.toString(), new FindOneCallback() {
             @Override
-            public void onQueryError(ErrorType errorType) {}
+            public void onQueryError(ErrorType errorType) {
+                callback.onQueryDone(0);
+            }
 
             @Override
             public void onQueryDone(Document document) {
+                if (document == null) {
+                    callback.onQueryDone(0);
+                    return;
+                }
                 int kills = parseIntSafe(document.get("kills"));
                 callback.onQueryDone(kills);
             }
@@ -133,10 +144,16 @@ public class PlayerDataManager {
     public void getDeaths(UUID uuid, PlayerValueReturnCallback callback) {
         PlayerDatabase.getPlayerDataAsync(uuid.toString(), new FindOneCallback() {
             @Override
-            public void onQueryError(ErrorType errorType) {}
+            public void onQueryError(ErrorType errorType) {
+                callback.onQueryDone(0);
+            }
 
             @Override
             public void onQueryDone(Document document) {
+                if (document == null) {
+                    callback.onQueryDone(0);
+                    return;
+                }
                 int deaths = parseIntSafe(document.get("deaths"));
                 callback.onQueryDone(deaths);
             }
@@ -146,10 +163,16 @@ public class PlayerDataManager {
     public void getSpy(UUID uuid, PlayerBooleanReturnCallback callback) {
         PlayerDatabase.getPlayerDataAsync(uuid.toString(), new FindOneCallback() {
             @Override
-            public void onQueryError(ErrorType errorType) {}
+            public void onQueryError(ErrorType errorType) {
+                callback.onQueryDone(true);
+            }
 
             @Override
             public void onQueryDone(Document document) {
+                if (document == null) {
+                    callback.onQueryDone(true);
+                    return;
+                }
                 boolean spy = document.getBoolean("spy", true);
                 callback.onQueryDone(spy);
             }
@@ -159,10 +182,16 @@ public class PlayerDataManager {
     public void getStatusCoord(UUID uuid, PlayerBooleanReturnCallback callback) {
         PlayerDatabase.getPlayerDataAsync(uuid.toString(), new FindOneCallback() {
             @Override
-            public void onQueryError(ErrorType errorType) {}
+            public void onQueryError(ErrorType errorType) {
+                callback.onQueryDone(true);
+            }
 
             @Override
             public void onQueryDone(Document document) {
+                if (document == null) {
+                    callback.onQueryDone(true);
+                    return;
+                }
                 boolean coords = document.getBoolean("coords", true);
                 callback.onQueryDone(coords);
             }

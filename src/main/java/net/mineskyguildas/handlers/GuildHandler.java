@@ -14,11 +14,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class GuildHandler {
     private final MineSkyGuildas plugin = MineSkyGuildas.getInstance();
     private static MongoCollection<Document> coll;
-    private static final Map<String, Guilds> guildas = new HashMap<>();
+    private static final Map<String, Guilds> guildas = new ConcurrentHashMap<>();
 
     public GuildHandler() {
         coll = plugin.coll;
@@ -105,7 +106,7 @@ public class GuildHandler {
     }
 
     public static void saveGuildas() {
-        Bukkit.getScheduler().runTaskAsynchronously(MineSkyGuildas.getInstance(), () -> {
+        Bukkit.getAsyncScheduler().runNow(MineSkyGuildas.getInstance(), scheduledTask -> {
             guildas.values().forEach(g -> {
                 coll.replaceOne(
                         new Document("_id", g.getId()),
@@ -120,11 +121,13 @@ public class GuildHandler {
         Guilds guilda = new Guilds(id, name, tag, lider.getUniqueId(), 0, 0, 0);
         guildas.put(id, guilda);
 
-        coll.replaceOne(
-                new Document("_id", id),
-                guildToDoc(guilda),
-                new ReplaceOptions().upsert(true)
-        );
+        Bukkit.getAsyncScheduler().runNow(MineSkyGuildas.getInstance(), task -> {
+            coll.replaceOne(
+                    new Document("_id", id),
+                    guildToDoc(guilda),
+                    new ReplaceOptions().upsert(true)
+            );
+        });
 
         MineSkyGuildas.l.info(Utils.c("| Criando a guilda " + name + " (" + id + ")..."));
     }
@@ -405,11 +408,9 @@ public class GuildHandler {
         Bukkit.getOnlinePlayers().stream()
                 .filter(p -> !recipients.contains(p.getUniqueId()))
                 .filter(p -> p.hasPermission("mineskyguildas.spy"))
-                .forEach(p -> MineSkyGuildas.getInstance().getPlayerData().getSpy(p.getUniqueId(), spyEnabled -> {
-                    if (spyEnabled) {
-                        p.sendMessage(spy);
-                    }
-                }));
+                .forEach(p -> p.getScheduler().run(MineSkyGuildas.getInstance(), task -> {
+                    p.sendMessage(spy);
+                }, null));
     }
 
     public static void broadcastLeaderChat(Player sender, Guilds guilds, String message) {
@@ -434,11 +435,9 @@ public class GuildHandler {
         Bukkit.getOnlinePlayers().stream()
                 .filter(p -> !GuildRoles.isLeadership(guilds.getRole(p.getUniqueId())))
                 .filter(p -> p.hasPermission("mineskyguildas.spy"))
-                .forEach(p -> MineSkyGuildas.getInstance().getPlayerData().getSpy(p.getUniqueId(), spyEnabled -> {
-                    if (spyEnabled) {
-                        p.sendMessage(spy);
-                    }
-                }));
+                .forEach(p -> p.getScheduler().run(MineSkyGuildas.getInstance(), task -> {
+                    p.sendMessage(spy);
+                }, null));
     }
 
 
@@ -473,7 +472,11 @@ public class GuildHandler {
 
         Utils.removeGuildsAlliesAndRivalsOnDelete(getGuildByID(id));
         guildas.remove(id);
-        coll.deleteOne(new Document("_id", id));
+
+        Bukkit.getAsyncScheduler().runNow(MineSkyGuildas.getInstance(), task -> {
+            coll.deleteOne(new Document("_id", id));
+        });
+
         MineSkyGuildas.l.info(Utils.c("| Guilda com ID '" + id + "' foi deletada com sucesso."));
     }
 

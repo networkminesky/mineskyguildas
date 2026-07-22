@@ -47,7 +47,8 @@ public class GuildCommand implements CommandExecutor {
                 new FriendlyFireAdminSubCommand(),
                 new PromoteAdminSubCommand(),
                 new ReloadSubCommand(),
-                new SpySubCommand()
+                new SpySubCommand(),
+                new isconnectedSubCommand()
         ).forEach(this::register);
     }
 

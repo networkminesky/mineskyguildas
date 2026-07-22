@@ -7,8 +7,8 @@ import net.mineskyguildas.handlers.GuildHandler;
 import net.mineskyguildas.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -56,6 +56,14 @@ public class PlayerListMenu implements Listener {
         return skull;
     }
 
+    private static void runAsync(Runnable runnable) {
+        try {
+            Bukkit.getAsyncScheduler().runNow(MineSkyGuildas.getInstance(), task -> runnable.run());
+        } catch (Throwable t) {
+            Bukkit.getScheduler().runTaskAsynchronously(MineSkyGuildas.getInstance(), runnable);
+        }
+    }
+
     public static void reorganizeItems(Player viewer, Inventory inv, int page) {
         inv.clear();
 
@@ -69,7 +77,7 @@ public class PlayerListMenu implements Listener {
 
         viewer.sendMessage(Utils.c("&e⏳ Carregando ranking de jogadores..."));
 
-        Bukkit.getScheduler().runTaskAsynchronously(MineSkyGuildas.getInstance(), () -> {
+        runAsync(() -> {
             List<OfflinePlayer> players = Arrays.asList(Bukkit.getOfflinePlayers());
             List<PlayerStats> statsList = new ArrayList<>();
 
@@ -89,10 +97,12 @@ public class PlayerListMenu implements Listener {
 
                 futures.add(future);
             }
+
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenRun(() -> {
                 statsList.sort(Comparator.comparingDouble(PlayerStats::getKdr).reversed());
 
-                Bukkit.getScheduler().runTask(MineSkyGuildas.getInstance(), () -> {
+                // Retorna para a thread do jogador para manipular a GUI com segurança no Folia
+                Utils.runOnPlayer(viewer, () -> {
                     int playersPerPage = 45;
                     int maxPage = (int) Math.ceil((double) statsList.size() / playersPerPage);
                     if (maxPage == 0) maxPage = 1;
@@ -105,18 +115,20 @@ public class PlayerListMenu implements Listener {
 
                     for (int i = start; i < end; i++) {
                         PlayerStats ps = statsList.get(i);
-                        Player player = ps.player.getPlayer();
-                        if (player.hasPermission("mineskyguildas.kdr.exclude")) {
+                        OfflinePlayer op = ps.player;
+
+                        if (op.isOnline() && op.getPlayer() != null && op.getPlayer().hasPermission("mineskyguildas.kdr.exclude")) {
                             continue;
                         }
-                        Guilds guild = GuildHandler.getGuildByPlayer(player.getUniqueId());
+
+                        Guilds guild = GuildHandler.getGuildByPlayer(op.getUniqueId());
 
                         inv.setItem(slot++, playerButton(
-                                player,
+                                op,
                                 "&6Posição: &e#" + (i + 1),
                                 "&6Guilda: &e" + (guild == null ? "Sem Guilda" : guild.getName()) +
                                         (guild == null ? "" : " &6[&f" + guild.getTag() + "&6]"),
-                                "&6Cargo: &e" + (guild == null ? "Nenhum" : GuildRoles.getLabelRole(guild.getRole(ps.player.getUniqueId()))),
+                                "&6Cargo: &e" + (guild == null ? "Nenhum" : GuildRoles.getLabelRole(guild.getRole(op.getUniqueId()))),
                                 "&6Kills: &e" + ps.kills,
                                 "&6Mortes: &e" + ps.deaths,
                                 "&6KDR: &e" + new DecimalFormat("0.00").format(ps.kdr)
@@ -168,14 +180,14 @@ public class PlayerListMenu implements Listener {
         switch (slot) {
             case 45 -> {
                 if (clickType == ClickType.LEFT)
-                    openMainMenu(p, playerPages.get(p) - 1);
+                    openMainMenu(p, playerPages.getOrDefault(p, 1) - 1);
                 else
                     p.closeInventory();
             }
             case 49 -> GuildMenu.openMainMenu(p);
             case 53 -> {
                 if (clickType == ClickType.LEFT)
-                    openMainMenu(p, playerPages.get(p) + 1);
+                    openMainMenu(p, playerPages.getOrDefault(p, 1) + 1);
                 else
                     p.closeInventory();
             }

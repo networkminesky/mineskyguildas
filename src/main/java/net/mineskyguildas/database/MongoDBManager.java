@@ -47,4 +47,17 @@ public class MongoDBManager {
             MineSkyGuildas.l.info(Utils.c("| Desconectado do MongoDB."));
         }
     }
+
+    public boolean isConnected() {
+        if (client == null) {
+            return false;
+        }
+
+        try {
+            db.runCommand(new Document("ping", 1));
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }
