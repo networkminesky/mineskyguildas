@@ -22,12 +22,12 @@ public class PromoteAdminSubCommand extends SubCommand {
 
     @Override
     public String getDescription() {
-        return "Promove o cargo de um membro de qualquer guilda (somente admin).";
+        return "Promove o cargo de um membro de qualquer clã (somente admin).";
     }
 
     @Override
     public String getUsage() {
-        return "/guilda admin promover-admin <jogador> <cargo>";
+        return "/clan admin promover-admin <jogador> <cargo>";
     }
 
     @Override
@@ -57,7 +57,7 @@ public class PromoteAdminSubCommand extends SubCommand {
 
         Guilds guild = GuildHandler.getGuildByPlayer(targetUUID);
         if (guild == null) {
-            sendError(player, "&4⚠ &cEste jogador não pertence a nenhuma guilda.");
+            sendError(player, "&4⚠ &cEste jogador não pertence a nenhum clã.");
             return;
         }
 
@@ -75,7 +75,7 @@ public class PromoteAdminSubCommand extends SubCommand {
         GuildHandler.broadcastGuildMessage(guild,
                 "&3➕ &b" + target.getName() + " &3foi promovido a &b" + newRoleName + "&3!");
 
-        player.sendMessage("§aVocê promoveu §b" + target.getName() + " §ada guilda §b" + guildName + " §apara §b" + newRoleName + "§a!");
+        player.sendMessage("§aVocê promoveu §b" + target.getName() + " §ado clã §b" + guildName + " §apara §b" + newRoleName + "§a!");
 
         if (target.isOnline() && target.getPlayer() != null) {
             target.getPlayer().sendMessage("§aVocê foi promovido a §b" + newRoleName + " §apelo administrador §b" + player.getName() + "§a!");

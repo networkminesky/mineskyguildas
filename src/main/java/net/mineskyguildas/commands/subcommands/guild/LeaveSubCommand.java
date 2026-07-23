@@ -25,12 +25,12 @@ public class LeaveSubCommand extends SubCommand {
 
     @Override
     public String getDescription() {
-        return "Abandonar sua guilda atual";
+        return "Abandonar seu clã atual";
     }
 
     @Override
     public String getUsage() {
-        return "/guilda abandonar";
+        return "/clan abandonar";
     }
 
     @Override
@@ -46,27 +46,27 @@ public class LeaveSubCommand extends SubCommand {
     @Override
     public void perform(Player player, String[] args) {
         if (!GuildHandler.hasGuild(player)) {
-            sendError(player, "&4⚠ &cVocê não pertence a nenhuma guilda no momento.");
+            sendError(player, "&4⚠ &cVocê não pertence a nenhum clã no momento.");
             return;
         }
 
         Guilds guild = GuildHandler.getGuildByPlayer(player.getUniqueId());
         if (guild.getRole(player.getUniqueId()) == GuildRoles.LEADER) {
-            sendError(player, "&4⚠ &cVocê é o líder da guilda. Para sair, finalize a guilda usando &f/guildas acabar");
+            sendError(player, "&4⚠ &cVocê é o líder do clã. Para sair, finalize o clã usando &f/clan acabar");
             return;
         }
 
-        confirmAction(player, "confirmar a saída da guilda", () -> {
+        confirmAction(player, "confirmar a saída do clã", () -> {
             PlayerLeaveGuildEvent event = new PlayerLeaveGuildEvent(player, guild);
             plugin.getServer().getPluginManager().callEvent(event);
             if (event.isCancelled()) {
-                player.sendMessage((event.CancelledMessage == null? Utils.c("&c⚠ Ops! A saída da guilda foi interrompida pela API.") : event.CancelledMessage));
+                player.sendMessage((event.CancelledMessage == null? Utils.c("&c⚠ Ops! A saída do clã foi interrompida pela API.") : event.CancelledMessage));
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO,1, 1);
                 return;
             }
-            GuildHandler.broadcastGuildMessage(guild, "&c⛔ &4" + player.getName() + " &csaiu da guilda.");
+            GuildHandler.broadcastGuildMessage(guild, "&c⛔ &4" + player.getName() + " &csaiu do clã.");
             GuildHandler.removeMember(player, guild);
-            player.sendMessage(Utils.c("&a✅ Você saiu da guilda."));
+            player.sendMessage(Utils.c("&a✅ Você saiu do clã."));
         });
     }
 }

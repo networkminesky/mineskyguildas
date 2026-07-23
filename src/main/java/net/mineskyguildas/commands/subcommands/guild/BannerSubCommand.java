@@ -22,12 +22,12 @@ public class BannerSubCommand extends SubCommand {
 
     @Override
     public String getDescription() {
-        return "Alterar o estandarte da guilda";
+        return "Alterar o estandarte do clã";
     }
 
     @Override
     public String getUsage() {
-        return "/guilda estandarte (segurando estandarte na mão)";
+        return "/clan estandarte (segurando estandarte na mão)";
     }
 
     @Override
@@ -44,24 +44,24 @@ public class BannerSubCommand extends SubCommand {
     public void perform(Player player, String[] args) {
         ItemStack item = player.getInventory().getItemInMainHand();
         if (!item.getType().name().endsWith("_BANNER")) {
-            sendError(player,"&cSegure um estandarte na mão principal para alterar o da sua guilda.");
+            sendError(player,"&cSegure um estandarte na mão principal para alterar o do seu clã.");
             return;
         }
         Guilds guild = GuildHandler.getGuildByPlayer(player.getUniqueId());
         if (guild == null) {
-            sendError(player,"&cVocê ainda não pertence a nenhuma guilda.");
+            sendError(player,"&cVocê ainda não pertence a nenhum clã.");
             return;
         }
 
         GuildRoles cargo = guild.getRole(player.getUniqueId());
         if (!EnumSet.of(GuildRoles.LEADER, GuildRoles.SUB_LEADER).contains(cargo)) {
-            sendError(player, "&cSomente líderes ou sub-líderes têm autoridade para mudar o estandarte da guilda.");
+            sendError(player, "&cSomente líderes ou sub-líderes têm autoridade para mudar o estandarte do clã.");
             return;
         }
 
         GuildHandler.setBanner(item, guild);
-        player.sendMessage(Utils.c("&aEstandarte alterado! Sua guilda está com nova identidade visual."));
-        GuildHandler.broadcastGuildMessage(guild, "&3\uD83C\uDFF4 &b" + player.getName() + " &3atualizou o estandarte da guilda.");
+        player.sendMessage(Utils.c("&aEstandarte alterado! Seu clã está com nova identidade visual."));
+        GuildHandler.broadcastGuildMessage(guild, "&3\uD83C\uDFF4 &b" + player.getName() + " &3atualizou o estandarte do clã.");
         player.playSound(player, Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);
     }
 }

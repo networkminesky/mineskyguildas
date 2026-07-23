@@ -23,7 +23,7 @@ public class ReloadSubCommand extends SubCommand {
 
     @Override
     public String getUsage() {
-        return "/guilda admin reload";
+        return "/clan admin reload";
     }
 
     @Override

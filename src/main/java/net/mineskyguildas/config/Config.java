@@ -13,9 +13,6 @@ public class Config {
     public static double GuildInvitePrice;
     public static int GuildInviteDuration;
 
-    public static double RegionWarPrice;
-    public static long RegionWarDurationMinutes;
-
     public static void loadConfig() {
         FileConfiguration config = MineSkyGuildas.getInstance().getConfig();
 
@@ -26,15 +23,10 @@ public class Config {
         GuildInvitePrice = config.getDouble("guilds.invite.price", 0);
         GuildInviteDuration = config.getInt("guilds.invite.duration", 0);
 
-        RegionWarPrice = config.getDouble("region-war.price", 5000.0);
-        RegionWarDurationMinutes = config.getLong("region-war.duration-minutes", 30L);
-
         config.addDefault("guilds.create.price", 0.0);
         config.addDefault("guilds.create.tag-limit", 4);
         config.addDefault("guilds.invite.price", 0.0);
         config.addDefault("guilds.invite.duration", 0);
-        config.addDefault("region-war.price", 5000.0);
-        config.addDefault("region-war.duration-minutes", 30L);
 
         config.options().copyDefaults(true);
         MineSkyGuildas.getInstance().saveConfig();

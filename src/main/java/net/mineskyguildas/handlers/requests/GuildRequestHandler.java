@@ -1,5 +1,6 @@
 package net.mineskyguildas.handlers.requests;
 
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.*;
 import net.mineskyguildas.MineSkyGuildas;
@@ -11,19 +12,20 @@ import net.mineskyguildas.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GuildRequestHandler {
     private final MineSkyGuildas plugin;
     private final GuildRequestType type;
-    private final Map<String, Player> player = new HashMap<>();
-    private final Map<String, Guilds> pendingRequests = new HashMap<>();
-    private final Map<String, Guilds> pendingNotification = new HashMap<>();
-    private final Map<String, BukkitRunnable> tasks = new HashMap<>();
+    private final Map<String, Player> player = new ConcurrentHashMap<>();
+    private final Map<String, Guilds> pendingRequests = new ConcurrentHashMap<>();
+    private final Map<String, Guilds> pendingNotification = new ConcurrentHashMap<>();
+    private final Map<String, ScheduledTask> tasks = new ConcurrentHashMap<>();
 
     public GuildRequestHandler(MineSkyGuildas plugin, GuildRequestType type) {
         this.plugin = plugin;
@@ -46,7 +48,11 @@ public class GuildRequestHandler {
         String id = target.getId();
         pendingRequests.remove(id);
         pendingNotification.remove(id);
-        Optional.ofNullable(tasks.remove(id)).ifPresent(BukkitRunnable::cancel);
+        player.remove(id);
+        ScheduledTask task = tasks.remove(id);
+        if (task != null) {
+            task.cancel();
+        }
     }
 
     public void sendRequest(Guilds requester, Guilds target, Player player) {
@@ -54,21 +60,17 @@ public class GuildRequestHandler {
         pendingRequests.put(id, requester);
         this.player.put(id, player);
 
-        BukkitRunnable task = new BukkitRunnable() {
-            int count = 0;
+        AtomicInteger count = new AtomicInteger(0);
 
-            @Override
-            public void run() {
-                if (count++ >= Config.GuildInviteDuration || !notifyTargetGuild(target, requester)) {
-                    removeRequest(target);
-                    GuildHandler.broadcastGuildMessage(requester,
-                            Utils.c("&4⏳&C O pedido de " + getTypeName() + " para &4" + target.getName() + " &Cexpirou."));
-                    cancel();
-                }
+        ScheduledTask task = Bukkit.getGlobalRegionScheduler().runAtFixedRate(plugin, scheduledTask -> {
+            if (count.getAndIncrement() >= Config.GuildInviteDuration || !notifyTargetGuild(target, requester)) {
+                removeRequest(target);
+                GuildHandler.broadcastGuildMessage(requester,
+                        Utils.c("&4⏳&C O pedido de " + getTypeName() + " para &4" + target.getName() + " &Cexpirou."));
+                scheduledTask.cancel();
             }
-        };
+        }, 1L, 20L * 60);
 
-        task.runTaskTimer(plugin, 0L, 20L * 60);
         tasks.put(id, task);
     }
 
@@ -77,13 +79,16 @@ public class GuildRequestHandler {
         boolean notified = false;
 
         for (UUID uuid : target.getMembers().keySet()) {
-            Player player = Bukkit.getPlayer(uuid);
-            if (player == null || !player.isOnline()) continue;
+            Player targetPlayer = Bukkit.getPlayer(uuid);
+            if (targetPlayer == null || !targetPlayer.isOnline()) continue;
             if (!EnumSet.of(GuildRoles.LEADER, GuildRoles.SUB_LEADER).contains(target.getRole(uuid))) continue;
 
-            player.spigot().sendMessage(new TextComponent(Utils.c("&b📩 &3Você recebeu um pedido de " + message + " de &b" + requester.getName() + "&3!")));
-            player.spigot().sendMessage(buildOptions());
-            player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+            targetPlayer.getScheduler().run(plugin, task -> {
+                targetPlayer.spigot().sendMessage(new TextComponent(Utils.c("&b📩 &3Você recebeu um pedido de " + message + " de &b" + requester.getName() + "&3!")));
+                targetPlayer.spigot().sendMessage(buildOptions());
+                targetPlayer.playSound(targetPlayer.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+            }, null);
+
             notified = true;
         }
 
@@ -91,8 +96,8 @@ public class GuildRequestHandler {
     }
 
     private TextComponent buildOptions() {
-        TextComponent accept = createOption("&#6aa84f[✔ Aceitar]", "§aClique para aceitar\n§e➳ Confirmar", "/guilda aceitar");
-        TextComponent reject = createOption("&#bf4c4c[❌ Rejeitar]", "§cClique para recusar\n§e➳ Recusar", "/guilda rejeitar");
+        TextComponent accept = createOption("&#6aa84f[✔ Aceitar]", "§aClique para aceitar\n§e➳ Confirmar", "/clan aceitar");
+        TextComponent reject = createOption("&#bf4c4c[❌ Rejeitar]", "§cClique para recusar\n§e➳ Recusar", "/clan rejeitar");
 
         TextComponent options = new TextComponent(Utils.c("&7Escolha uma opção: "));
         options.addExtra(accept);

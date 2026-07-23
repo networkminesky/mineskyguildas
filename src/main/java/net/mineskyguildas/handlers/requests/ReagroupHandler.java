@@ -1,6 +1,6 @@
 package net.mineskyguildas.handlers.requests;
 
-import net.md_5.bungee.api.ChatColor;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -13,16 +13,17 @@ import net.mineskyguildas.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ReagroupHandler {
 
     private final MineSkyGuildas plugin;
-    private final HashMap<UUID, UUID> active = new HashMap<>();
-    private final HashMap<UUID, BukkitRunnable> tasks = new HashMap<>();
+    private final Map<UUID, UUID> active = new ConcurrentHashMap<>();
+    private final Map<UUID, ScheduledTask> tasks = new ConcurrentHashMap<>();
 
     public ReagroupHandler(MineSkyGuildas plugin) {
         this.plugin = plugin;
@@ -38,9 +39,9 @@ public class ReagroupHandler {
 
     public void removeRequest(UUID playerId) {
         active.remove(playerId);
-        if (tasks.containsKey(playerId)) {
-            tasks.get(playerId).cancel();
-            tasks.remove(playerId);
+        ScheduledTask task = tasks.remove(playerId);
+        if (task != null) {
+            task.cancel();
         }
     }
 
@@ -52,51 +53,50 @@ public class ReagroupHandler {
             sendReagroupMessage(member, requester, guild);
             active.put(memberId, requester.getUniqueId());
 
-            BukkitRunnable task = new BukkitRunnable() {
-                int seconds = 0;
+            AtomicInteger seconds = new AtomicInteger(0);
 
-                @Override
-                public void run() {
-                    if (!member.isOnline() || seconds >= Config.GuildInviteDuration * 60) {
-                        removeRequest(memberId);
-                        cancel();
-                        return;
-                    }
-                    seconds++;
+            ScheduledTask task = member.getScheduler().runAtFixedRate(plugin, scheduledTask -> {
+                if (!member.isOnline() || seconds.get() >= Config.GuildInviteDuration * 60) {
+                    removeRequest(memberId);
+                    scheduledTask.cancel();
+                    return;
                 }
-            };
-            task.runTaskTimer(plugin, 0L, 20L);
+                seconds.incrementAndGet();
+            }, null, 1L, 20L);
+
             tasks.put(memberId, task);
         }
 
         GuildHandler.broadcastGuildMessage(guild,
-                Utils.c("&e📍 &fO jogador &b" + requester.getName() + " &fescolheu um local para reagrupar a guilda!"));
+                Utils.c("&e📍 &fO jogador &b" + requester.getName() + " &fescolheu um local para reagrupar o clã!"));
     }
 
     private void sendReagroupMessage(Player member, Player requester, Guilds guild) {
         String guildName = guild.getName();
 
-        member.sendMessage(Utils.c("&b\uD83D\uDDFA &3O líder da guilda &b" + guildName + " &3deseja reagrupar todos os membros!"));
+        member.getScheduler().run(plugin, scheduledTask -> {
+            member.sendMessage(Utils.c("&b\uD83D\uDDFA &3O líder do clã &b" + guildName + " &3deseja reagrupar todos os membros!"));
 
-        TextComponent accept = createOption(
-                "&#6aa84f[✔ Ir até o líder]",
-                "§aClique para se teleportar até " + requester.getName(),
-                "/guild aceitar"
-        );
+            TextComponent accept = createOption(
+                    "&#6aa84f[✔ Ir até o líder]",
+                    "§aClique para se teleportar até " + requester.getName(),
+                    "/guild aceitar"
+            );
 
-        TextComponent reject = createOption(
-                "&#bf4c4c[❌ Recusar]",
-                "§cClique para recusar o teleporte",
-                "/guild rejeitar"
-        );
+            TextComponent reject = createOption(
+                    "&#bf4c4c[❌ Recusar]",
+                    "§cClique para recusar o teleporte",
+                    "/guild rejeitar"
+            );
 
-        TextComponent options = new TextComponent(Utils.c("&7Escolha uma opção: "));
-        options.addExtra(accept);
-        options.addExtra(new TextComponent(" "));
-        options.addExtra(reject);
+            TextComponent options = new TextComponent(Utils.c("&7Escolha uma opção: "));
+            options.addExtra(accept);
+            options.addExtra(new TextComponent(" "));
+            options.addExtra(reject);
 
-        member.spigot().sendMessage(options);
-        member.playSound(member.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+            member.spigot().sendMessage(options);
+            member.playSound(member.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+        }, null);
     }
 
     private TextComponent createOption(String text, String hoverText, String command) {
@@ -121,10 +121,15 @@ public class ReagroupHandler {
             return;
         }
 
-        member.teleport(requester.getLocation());
-        member.sendMessage(Utils.c("&a✅ Você foi teleportado até &b" + requester.getName() + "&a!"));
-        requester.sendMessage(Utils.c("&a✨ " + member.getName() + " aceitou o reagrupar!"));
-        removeRequest(member.getUniqueId());
+        member.teleportAsync(requester.getLocation()).thenAccept(success -> {
+            if (success) {
+                member.sendMessage(Utils.c("&a✅ Você foi teleportado até &b" + requester.getName() + "&a!"));
+                requester.sendMessage(Utils.c("&a✨ " + member.getName() + " aceitou o reagrupar!"));
+            } else {
+                member.sendMessage(Utils.c("&c⚠ Falha ao realizar o teleporte."));
+            }
+            removeRequest(member.getUniqueId());
+        });
     }
 
     public void reject(Player member) {
@@ -137,8 +142,9 @@ public class ReagroupHandler {
         Player requester = Bukkit.getPlayer(requesterId);
 
         member.sendMessage(Utils.c("&c❌ Você recusou o pedido de reagrupar."));
-        if (requester != null)
+        if (requester != null) {
             requester.sendMessage(Utils.c("&c⚠ " + member.getName() + " recusou o reagrupar."));
+        }
         removeRequest(member.getUniqueId());
     }
 }

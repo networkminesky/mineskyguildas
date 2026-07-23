@@ -18,12 +18,12 @@ public class BankAdminSubCommand extends SubCommand {
 
     @Override
     public String getDescription() {
-        return "Gerenciar banco da guilda";
+        return "Gerenciar banco do clã";
     }
 
     @Override
     public String getUsage() {
-        return "/guilda admin banco-admin <dar,tirar,resetar,saldo,setar> <tag> [quantidade]";
+        return "/clan admin banco-admin <dar,tirar,resetar,saldo,setar> <tag> [quantidade]";
     }
 
     @Override
@@ -45,7 +45,7 @@ public class BankAdminSubCommand extends SubCommand {
 
         Guilds guild = GuildHandler.getGuildByTag(args[2]);
         if (guild == null) {
-            sendError(player, "&4⚠ &cVocê deve citar uma guilda válida.");
+            sendError(player, "&4⚠ &cVocê deve citar um clã válida.");
             return;
         }
 
@@ -62,8 +62,8 @@ public class BankAdminSubCommand extends SubCommand {
 
             int value = Integer.parseInt(args[3]);
                 guild.deposit(value);
-                GuildHandler.broadcastGuildMessage(guild, "&b\uD83D\uDCB0 &3Foi depositado uma quantia de &b$" + value + "&3 para a sua guilda!");
-                player.sendMessage(Utils.c("&aVocê deu $" + value + " para a guilda " + guild.getName() + "!"));
+                GuildHandler.broadcastGuildMessage(guild, "&b\uD83D\uDCB0 &3Foi depositado uma quantia de &b$" + value + "&3 para a seu clã!");
+                player.sendMessage(Utils.c("&aVocê deu $" + value + " para o clã " + guild.getName() + "!"));
             return;
         } else if (args[1].equalsIgnoreCase("tirar")) {
             if (args.length < 4) {
@@ -78,16 +78,16 @@ public class BankAdminSubCommand extends SubCommand {
             int value = Integer.parseInt(args[3]);
             if (guild.withdraw(value)) {
                     guild.withdraw(value);
-                    GuildHandler.broadcastGuildMessage(guild, "&b\uD83D\uDCB0 &3Foi retirado uma quantia de &b$" + value + "&3 da sua guilda!");
-                    player.sendMessage(Utils.c("&aVocê tirou $" + value + " da guilda " + guild.getName() + "!"));
+                    GuildHandler.broadcastGuildMessage(guild, "&b\uD83D\uDCB0 &3Foi retirado uma quantia de &b$" + value + "&3 do seu clã!");
+                    player.sendMessage(Utils.c("&aVocê tirou $" + value + " do clã " + guild.getName() + "!"));
             } else {
-                sendError(player, "&4⚠ &cA guilda não tem dinheiro suficiente.");
+                sendError(player, "&4⚠ &cO clã não tem dinheiro suficiente.");
                 return;
             }
         } else if (args[1].equalsIgnoreCase("resetar")) {
             guild.setBalance(0);
-            GuildHandler.broadcastGuildMessage(guild, "&b\uD83D\uDCB0 &3O dinheiro da sua guilda foi resetado!");
-            player.sendMessage(Utils.c("&aVocê resetou o dinheiro da guilda " + guild.getName() + "!"));
+            GuildHandler.broadcastGuildMessage(guild, "&b\uD83D\uDCB0 &3O dinheiro do seu clã foi resetado!");
+            player.sendMessage(Utils.c("&aVocê resetou o dinheiro do clã " + guild.getName() + "!"));
         } else if (args[1].equalsIgnoreCase("setar")) {
             if (args.length < 4) {
                 sendError(player, "&4⚠ &cUso: " + getUsage());
@@ -100,10 +100,10 @@ public class BankAdminSubCommand extends SubCommand {
 
             int value = Integer.parseInt(args[3]);
             guild.setBalance(value);
-            GuildHandler.broadcastGuildMessage(guild, "&b\uD83D\uDCB0 &3O dinheiro da sua guilda foi setado em &b$" + value + "!");
-            player.sendMessage(Utils.c("&aVocê setou o dinheiro da guilda " + guild.getName() + " em $" + value + "!"));
+            GuildHandler.broadcastGuildMessage(guild, "&b\uD83D\uDCB0 &3O dinheiro do seu clã foi setado em &b$" + value + "!");
+            player.sendMessage(Utils.c("&aVocê setou o dinheiro do clã " + guild.getName() + " em $" + value + "!"));
         } else if (args[1].equalsIgnoreCase("saldo")) {
-            player.sendMessage(Utils.c("&b\uD83D\uDCB0 &3Banco da guilda " + guild.getName() + ": &b$" + guild.getBalance()));
+            player.sendMessage(Utils.c("&b\uD83D\uDCB0 &3Banco do clã " + guild.getName() + ": &b$" + guild.getBalance()));
         }
     }
 

@@ -23,7 +23,7 @@ public class isconnectedSubCommand extends SubCommand {
 
     @Override
     public String getUsage() {
-        return "/guildas admin isconnected";
+        return "/clan admin isconnected";
     }
 
     @Override

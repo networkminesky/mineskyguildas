@@ -18,17 +18,17 @@ public class ListSubCommand extends SubCommand {
 
     @Override
     public String getDescription() {
-        return "Lista todas as guildas existentes com nome, tag e ID";
+        return "Lista de todos os clãs existentes com nome, tag e ID";
     }
 
     @Override
     public String getUsage() {
-        return "/guilda listar";
+        return "/clan listar";
     }
 
     @Override
     public List<String> getAliases() {
-        return List.of("list", "listas", "guildas");
+        return List.of("list", "listas", "guildas", "clãs");
     }
 
     @Override
@@ -39,11 +39,11 @@ public class ListSubCommand extends SubCommand {
     @Override
     public void perform(Player player, String[] args) {
         if (GuildHandler.getGuilds().isEmpty()) {
-            sendError(player, "&c❌ Nenhuma guilda foi encontrada.");
+            sendError(player, "&c❌ Nenhum clã foi encontrada.");
             return;
         }
 
-        player.sendMessage(Utils.c("&3✨ &bLista de todas as Guildas:"));
+        player.sendMessage(Utils.c("&3✨ &bLista de todos os clãs:"));
 
         int i = 1;
         for (Guilds guild : GuildHandler.getGuilds().values()) {
@@ -57,7 +57,7 @@ public class ListSubCommand extends SubCommand {
             )));
         }
 
-        player.sendMessage(Utils.c("&7Total de guildas: &b" + GuildHandler.getGuilds().size()));
+        player.sendMessage(Utils.c("&7Total de clãs: &b" + GuildHandler.getGuilds().size()));
     }
 
 }

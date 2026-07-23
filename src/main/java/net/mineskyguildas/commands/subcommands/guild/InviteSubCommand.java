@@ -33,7 +33,7 @@ public class InviteSubCommand extends SubCommand {
 
     @Override
     public String getUsage() {
-        return "/guilda convidar <jogador>";
+        return "/clan convidar <jogador>";
     }
 
     @Override
@@ -49,13 +49,13 @@ public class InviteSubCommand extends SubCommand {
     @Override
     public void perform(Player player, String[] args) {
         if (args.length < 2) {
-            sendError(player, "&4⚠ &cUso correto: /guilda convidar <jogador>");
+            sendError(player, "&4⚠ &cUso correto: /clan convidar <jogador>");
             return;
         }
 
         Guilds guild = GuildHandler.getGuildByPlayer(player.getUniqueId());
         if (guild == null) {
-            sendError(player, "&4⚠ &CVocê não faz parte de uma guilda.");
+            sendError(player, "&4⚠ &CVocê não faz parte de um clã.");
             return;
         }
 
@@ -71,24 +71,24 @@ public class InviteSubCommand extends SubCommand {
         }
 
         if (GuildHandler.hasGuild(target)) {
-            sendError(player, "&4⚠ &cEste jogador já faz pertence a uma guilda.");
+            sendError(player, "&4⚠ &cEste jogador já faz parte de um clã.");
             return;
         }
 
         GuildRoles cargo = guild.getRole(player.getUniqueId());
         if (!EnumSet.of(GuildRoles.LEADER, GuildRoles.SUB_LEADER, GuildRoles.CAPTAIN, GuildRoles.RECRUITER).contains(cargo)) {
-            sendError(player, "&4⚠ &cApenas membros autorizados podem convidar jogadores para a guilda.");
+            sendError(player, "&4⚠ &cApenas membros autorizados podem convidar jogadores para o clã.");
             return;
         }
 
         if (guild.getMembers().size() - 1 >= guild.getMemberLimit()) {
-            sendError(player, "&4⚠ &cSua guilda atingiu o limite de membros (" + guild.getMemberLimit() + ")." + (guild.getLevel() >= 6 ? "" : " Suba o nível da guilda para expandir esse limite!"));
+            sendError(player, "&4⚠ &cSeu clã atingiu o limite de membros (" + guild.getMemberLimit() + ")." + (guild.getLevel() >= 6 ? "" : " Suba o nível do clã para expandir esse limite!"));
             return;
         }
 
         if (plugin.getInviteHandler().hasInvite(target.getUniqueId())
                 && plugin.getInviteHandler().getInviteGuild(player.getUniqueId()).getId().equals(guild.getId())) {
-            sendError(player, "&4⚠ &cEste jogador já foi convidado por sua guilda.");
+            sendError(player, "&4⚠ &cEste jogador já foi convidado pelo seu clã.");
             return;
         }
 
@@ -106,8 +106,8 @@ public class InviteSubCommand extends SubCommand {
             return;
         }
         plugin.getInviteHandler().sendInvite(target, guild);
-        player.sendMessage(Utils.c("&4\uD83D\uDCB5 &cVocê gastou &4$" + Config.GuildInvitePrice + " &cpara convidar &4" + target.getName() + " &cpara a guilda."));
-        GuildHandler.broadcastGuildMessage(guild, "&3\uD83D\uDCE9 &b" + target.getName() + " &3foi convidado para a guilda por &b" + player.getName() + "&3.");
+        player.sendMessage(Utils.c("&4\uD83D\uDCB5 &cVocê gastou &4$" + Config.GuildInvitePrice + " &cpara convidar &4" + target.getName() + " &cpara o clã."));
+        GuildHandler.broadcastGuildMessage(guild, "&3\uD83D\uDCE9 &b" + target.getName() + " &3foi convidado para o clã por &b" + player.getName() + "&3.");
         player.playSound(player, Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);
     }
 }

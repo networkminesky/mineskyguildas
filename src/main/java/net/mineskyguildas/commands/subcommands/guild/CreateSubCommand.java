@@ -18,12 +18,12 @@ public class CreateSubCommand extends SubCommand {
 
     @Override
     public String getDescription() {
-        return "Criar uma nova guilda";
+        return "Criar uma novo clã";
     }
 
     @Override
     public String getUsage() {
-        return "/guilda criar";
+        return "/clan criar";
     }
 
     @Override
@@ -39,7 +39,7 @@ public class CreateSubCommand extends SubCommand {
     @Override
     public void perform(Player player, String[] args) {
         if (GuildHandler.hasGuild(player)) {
-            sendError(player, "&c⚠ Você já está ligado a uma guilda. Rompa os laços antes de criar ou buscar nova aliança.");
+            sendError(player, "&c⚠ Você já está ligado a um clã. Rompa os laços antes de criar ou buscar nova aliança.");
             return;
         }
         GuildCreateMenu.openMainMenu(player, new GuildBuilder(player.getUniqueId()));

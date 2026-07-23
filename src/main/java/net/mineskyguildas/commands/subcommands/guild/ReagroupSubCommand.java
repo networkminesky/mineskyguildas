@@ -1,5 +1,6 @@
 package net.mineskyguildas.commands.subcommands.guild;
 
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.mineskyguildas.MineSkyGuildas;
 import net.mineskyguildas.commands.subcommands.SubCommand;
 import net.mineskyguildas.data.Guilds;
@@ -15,15 +16,17 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static net.mineskyguildas.commands.GuildCommand.sendError;
 
 public class ReagroupSubCommand extends SubCommand implements Listener {
 
-    private static final Map<UUID, Location> teleportingPlayers = new HashMap<>();
+    private static final Map<UUID, Location> teleportingPlayers = new ConcurrentHashMap<>();
+    private static final Map<UUID, ScheduledTask> teleportTasks = new ConcurrentHashMap<>();
 
     public ReagroupSubCommand() {
         Bukkit.getPluginManager().registerEvents(this, MineSkyGuildas.getInstance());
@@ -36,12 +39,12 @@ public class ReagroupSubCommand extends SubCommand implements Listener {
 
     @Override
     public String getDescription() {
-        return "Pede para todos os membros da guilda se reagrupar até você ou na base.";
+        return "Pede para todos os membros do clã se reagrupar até você ou na base.";
     }
 
     @Override
     public String getUsage() {
-        return "/guild reagrupar [base]";
+        return "/clan reagrupar [base]";
     }
 
     @Override
@@ -59,7 +62,7 @@ public class ReagroupSubCommand extends SubCommand implements Listener {
         Guilds guild = GuildHandler.getGuildByPlayer(player);
 
         if (guild == null) {
-            sendError(player, "&c⚠ Você não faz parte de nenhuma guilda.");
+            sendError(player, "&c⚠ Você não faz parte de nenhum clã.");
             return;
         }
 
@@ -70,25 +73,24 @@ public class ReagroupSubCommand extends SubCommand implements Listener {
 
         ReagroupHandler handler = MineSkyGuildas.getInstance().getReagroupHandler();
 
-
         if (args.length > 1 && args[1].equalsIgnoreCase("base")) {
             if (guild.getBase() == null) {
-                sendError(player, "&c⚠ Sua guilda não tem uma base definida.");
+                sendError(player, "&c⚠ Seu clã não tem uma base definida.");
                 return;
             }
 
-            GuildHandler.broadcastGuildMessage(guild, "&e📍 &6" + player.getName() + " &esolicitou um reagrupamento na base da guilda!");
+            GuildHandler.broadcastGuildMessage(guild, "&e📍 &6" + player.getName() + " &esolicitou um reagrupamento na base do clã!");
             for (UUID memberId : guild.getMembers().keySet()) {
                 Player member = Bukkit.getPlayer(memberId);
                 if (member != null && member.isOnline()) {
-                    teleportWithDelay(member, guild.getBase(), "&a✅ Você foi teleportado para a base da guilda!");
+                    teleportWithDelay(member, guild.getBase(), "&a✅ Você foi teleportado para a base do clã!");
                 }
             }
             return;
         }
 
         handler.sendReagroupRequest(player, guild);
-        player.sendMessage(Utils.c("&a📍 Pedido de reagrupamento enviado para todos os membros da guilda!"));
+        player.sendMessage(Utils.c("&a📍 Pedido de reagrupamento enviado para todos os membros do clã!"));
     }
 
     private void teleportWithDelay(Player player, Location target, String successMessage) {
@@ -99,33 +101,38 @@ public class ReagroupSubCommand extends SubCommand implements Listener {
 
         Location startLocation = player.getLocation().clone();
         teleportingPlayers.put(player.getUniqueId(), startLocation);
-        player.sendTitle("§e§lReagrupar", "§7Teleportando até a base da guilda...", 5, 60, 20);
+        player.sendTitle("§e§lReagrupar", "§7Teleportando até a base do clã...", 5, 60, 20);
         player.sendMessage(Utils.c("&e⏳ Fique parado por &l5 segundos&r &epara ser teleportado..."));
         player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
 
-        new BukkitRunnable() {
-            int seconds = 5;
+        AtomicInteger seconds = new AtomicInteger(5);
 
-            @Override
-            public void run() {
-                if (!teleportingPlayers.containsKey(player.getUniqueId())) {
-                    cancel();
-                    return;
-                }
-
-                if (seconds <= 0) {
-                    teleportingPlayers.remove(player.getUniqueId());
-                    player.teleport(target, PlayerTeleportEvent.TeleportCause.COMMAND);
-                    player.sendMessage(Utils.c(successMessage));
-                    player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                    cancel();
-                    return;
-                }
-
-                player.sendActionBar(Utils.c("&eTeleportando em &6" + seconds + "s..."));
-                seconds--;
+        ScheduledTask task = player.getScheduler().runAtFixedRate(MineSkyGuildas.getInstance(), scheduledTask -> {
+            if (!teleportingPlayers.containsKey(player.getUniqueId())) {
+                scheduledTask.cancel();
+                teleportTasks.remove(player.getUniqueId());
+                return;
             }
-        }.runTaskTimer(MineSkyGuildas.getInstance(), 0L, 20L);
+
+            if (seconds.get() <= 0) {
+                teleportingPlayers.remove(player.getUniqueId());
+                teleportTasks.remove(player.getUniqueId());
+                scheduledTask.cancel();
+
+                player.teleportAsync(target, PlayerTeleportEvent.TeleportCause.COMMAND).thenAccept(success -> {
+                    if (success) {
+                        player.sendMessage(Utils.c(successMessage));
+                        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                    }
+                });
+                return;
+            }
+
+            player.sendActionBar(Utils.c("&eTeleportando em &6" + seconds.get() + "s..."));
+            seconds.decrementAndGet();
+        }, null, 1L, 20L);
+
+        teleportTasks.put(player.getUniqueId(), task);
     }
 
     @EventHandler
@@ -139,6 +146,10 @@ public class ReagroupSubCommand extends SubCommand implements Listener {
 
         if (from.getX() != to.getX() || from.getZ() != to.getZ()) {
             teleportingPlayers.remove(player.getUniqueId());
+            ScheduledTask task = teleportTasks.remove(player.getUniqueId());
+            if (task != null) {
+                task.cancel();
+            }
             player.sendMessage(Utils.c("&c❌ Teleporte cancelado pois você se moveu!"));
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1, 1);
         }

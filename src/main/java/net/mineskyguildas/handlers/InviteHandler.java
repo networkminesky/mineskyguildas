@@ -1,5 +1,6 @@
 package net.mineskyguildas.handlers;
 
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -11,24 +12,25 @@ import net.mineskyguildas.data.Guilds;
 import net.mineskyguildas.utils.Utils;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class InviteHandler {
     private final MineSkyGuildas plugin;
-    private final HashMap<UUID, Guilds> activeInvites = new HashMap<>();
-    private final HashMap<UUID, BukkitRunnable> inviteTasks = new HashMap<>();
+    private final Map<UUID, Guilds> activeInvites = new ConcurrentHashMap<>();
+    private final Map<UUID, ScheduledTask> inviteTasks = new ConcurrentHashMap<>();
 
     public InviteHandler(MineSkyGuildas plugin) {
         this.plugin = plugin;
     }
 
     public boolean hasInvite(UUID playerId) {
-        return activeInvites != null ? activeInvites.containsKey(playerId) : false;
+        return activeInvites.containsKey(playerId);
     }
 
     public Guilds getInviteGuild(UUID playerId) {
@@ -37,49 +39,48 @@ public class InviteHandler {
 
     public void removeInvite(UUID playerId) {
         activeInvites.remove(playerId);
-        if (inviteTasks.containsKey(playerId)) {
-            inviteTasks.get(playerId).cancel();
-            inviteTasks.remove(playerId);
+        ScheduledTask task = inviteTasks.remove(playerId);
+        if (task != null) {
+            task.cancel();
         }
     }
 
     public void sendInvite(Player invited, Guilds guild) {
+        removeInvite(invited.getUniqueId());
+
         activeInvites.put(invited.getUniqueId(), guild);
 
-        BukkitRunnable task = new BukkitRunnable() {
-            int minutes = 0;
+        AtomicInteger minutes = new AtomicInteger(0);
 
-            @Override
-            public void run() {
-                if (!invited.isOnline() || minutes >= Config.GuildInviteDuration) {
-                    GuildHandler.broadcastGuildMessage(guild, Utils.c("&4⏳&CO convite para &4" + invited.getName() + " &Cexpirou."));
-                    removeInvite(invited.getUniqueId());
-                    cancel();
-                    return;
-                }
-
-                sendInviteMessage(invited, guild);
-                minutes++;
+        ScheduledTask task = invited.getScheduler().runAtFixedRate(plugin, scheduledTask -> {
+            if (!invited.isOnline() || minutes.get() >= Config.GuildInviteDuration) {
+                GuildHandler.broadcastGuildMessage(guild, Utils.c("&4⏳&CO convite para &4" + invited.getName() + " &Cexpirou."));
+                removeInvite(invited.getUniqueId());
+                scheduledTask.cancel();
+                return;
             }
-        };
-        task.runTaskTimer(plugin, 0L, 20L * 60);
+
+            sendInviteMessage(invited, guild);
+            minutes.incrementAndGet();
+        }, null, 1L, 20L * 60);
+
         inviteTasks.put(invited.getUniqueId(), task);
     }
 
     private void sendInviteMessage(Player invited, Guilds guild) {
         String guildName = guild.getName();
 
-        invited.spigot().sendMessage(new TextComponent(Utils.c("&b\uD83D\uDCE9 &3Você recebeu um convite para a guilda &b" + guildName + "&3!")));
+        invited.spigot().sendMessage(new TextComponent(Utils.c("&b\uD83D\uDCE9 &3Você recebeu um convite para o clã &b" + guildName + "&3!")));
 
         TextComponent accept = createOption(
                 "&#6aa84f[✔ Aceitar convite]",
-                "§aClique para ingressar na guilda\n\n§e➳ Entrar agora",
+                "§aClique para ingressar no clã\n\n§e➳ Entrar agora",
                 "/guilda aceitar"
         );
 
         TextComponent reject = createOption(
                 "&#bf4c4c[❌ Rejeitar convite]",
-                "§cClique para recusar o convite da guilda\n\n§e➳ Recusar agora",
+                "§cClique para recusar o convite do clã\n\n§e➳ Recusar agora",
                 "/guilda rejeitar"
         );
 

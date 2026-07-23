@@ -21,12 +21,12 @@ public class ForceJoinSubCommand extends SubCommand {
 
     @Override
     public String getDescription() {
-        return "Força sua entrada em uma guilda ou de algum player.";
+        return "Força sua entrada em um clã ou de algum player.";
     }
 
     @Override
     public String getUsage() {
-        return "/guilda admin forçar-entrada <guilda> [player] [cargo]";
+        return "/clan admin forçar-entrada <clan> [player] [cargo]";
     }
 
     @Override
@@ -52,7 +52,7 @@ public class ForceJoinSubCommand extends SubCommand {
 
         Guilds guild = GuildHandler.getGuildByTag(tag);
         if (guild == null) {
-            player.sendMessage(Utils.c("&cA guilda &f" + tag + " &cnão existe."));
+            player.sendMessage(Utils.c("&cO clã &f" + tag + " &cnão existe."));
             return;
         }
 
@@ -73,7 +73,7 @@ public class ForceJoinSubCommand extends SubCommand {
         Guilds oldGuild = GuildHandler.getGuildByPlayer(targetId);
         if (oldGuild != null) {
             oldGuild.removeMember(targetId);
-            player.sendMessage(Utils.c("&eO jogador foi removido da guilda anterior &f" + oldGuild.getName() + "&e."));
+            player.sendMessage(Utils.c("&eO jogador foi removido do clã anterior &f" + oldGuild.getName() + "&e."));
         }
         GuildRoles newRole = GuildRoles.getRole(cargoArg);
 
@@ -85,12 +85,12 @@ public class ForceJoinSubCommand extends SubCommand {
 
         guild.addMember(targetId, newRole, 0);
         GuildHandler.saveGuildas();
-        String msg = "&3🏰 &b" + target.getName() + " &3entrou na guilda &b" + guild.getName() + "&3!";
+        String msg = "&3🏰 &b" + target.getName() + " &3entrou no clã &b" + guild.getName() + "&3!";
         Bukkit.broadcastMessage(Utils.c(msg));
         GuildHandler.addNotice(guild, Utils.c(msg));
-        player.sendMessage(Utils.c("&aVocê forçou a entrada de &f" + playerArg + " &ana guilda &f" + guild.getName() + " &acom o cargo &f" + newRoleName + "&a."));
+        player.sendMessage(Utils.c("&aVocê forçou a entrada de &f" + playerArg + " &ano clã &f" + guild.getName() + " &acom o cargo &f" + newRoleName + "&a."));
         if (target != null && target.isOnline()) {
-            target.sendMessage(Utils.c("&aVocê foi adicionado à guilda &f" + guild.getName() + " &acom o cargo &f" + newRoleName + "&a."));
+            target.sendMessage(Utils.c("&aVocê foi adicionado no clã &f" + guild.getName() + " &acom o cargo &f" + newRoleName + "&a."));
         }
     }
 }

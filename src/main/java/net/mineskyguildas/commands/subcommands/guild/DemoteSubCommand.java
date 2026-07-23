@@ -22,12 +22,12 @@ public class DemoteSubCommand extends SubCommand {
 
     @Override
     public String getDescription() {
-        return "Rebaixa o cargo de um membro da guilda.";
+        return "Rebaixa o cargo de um membro do clã.";
     }
 
     @Override
     public String getUsage() {
-        return "/guilda rebaixar <membro>";
+        return "/clan rebaixar <membro>";
     }
 
     @Override
@@ -43,7 +43,7 @@ public class DemoteSubCommand extends SubCommand {
     @Override
     public void perform(Player player, String[] args) {
         if (!GuildHandler.hasGuild(player)) {
-            sendError(player, "&4⚠ &cVocê não pertence a nenhuma guilda.");
+            sendError(player, "&4⚠ &cVocê não pertence a nenhum clã.");
             return;
         }
 
@@ -69,14 +69,14 @@ public class DemoteSubCommand extends SubCommand {
         }
 
         if (!GuildHandler.hasGuild(target.getPlayer()) || !GuildHandler.getGuildByPlayer(targetUUID).equals(guild)) {
-            sendError(player, "&4⚠ &cEste jogador não é membro da sua guilda.");
+            sendError(player, "&4⚠ &cEste jogador não é membro do seu clã.");
             return;
         }
 
         GuildRoles targetRole = guild.getRole(targetUUID);
 
         if (targetRole == GuildRoles.LEADER) {
-            sendError(player, "&4⚠ &cVocê não pode rebaixar o líder da guilda!");
+            sendError(player, "&4⚠ &cVocê não pode rebaixar o líder do clã!");
             return;
         }
 

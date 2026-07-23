@@ -18,12 +18,12 @@ public class FriendlyFireSubCommand extends SubCommand {
 
     @Override
     public String getDescription() {
-        return "Ativar/Desativar o fogo amigo da guilda";
+        return "Ativar/Desativar o fogo amigo do clã";
     }
 
     @Override
     public String getUsage() {
-        return "/guilda fogo-amigo [ativar/desativar]";
+        return "/clan fogo-amigo [ativar/desativar]";
     }
 
     @Override
@@ -40,11 +40,11 @@ public class FriendlyFireSubCommand extends SubCommand {
     public void perform(Player player, String[] args) {
         Guilds g = GuildHandler.getGuildByPlayer(player);
         if (g == null || !GuildHandler.hasGuild(player)) {
-            sendError(player, "&4⚠ &cVocê não pertence a uma guilda.");
+            sendError(player, "&4⚠ &cVocê não pertence a um clã.");
             return;
         }
         if (!GuildRoles.isLeadershipAndRecruiter(g.getRole(player.getUniqueId()))) {
-            sendError(player, "&4⚠ &cApenas os &lCAPITÕES&r &cda guilda pode alterar o status do fogo-amigo.");
+            sendError(player, "&4⚠ &cApenas os &lCAPITÕES&r &cdo clã pode alterar o status do fogo-amigo.");
             return;
         }
         if (args.length == 1) {

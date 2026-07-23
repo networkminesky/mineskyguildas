@@ -93,7 +93,7 @@ public class GuildCommand implements CommandExecutor {
             }
 
             if (args.length < 2) {
-                sendError(player, "&c❌ Use: /guilda admin <subcomando>");
+                sendError(player, "&c❌ Use: /clan admin <subcomando>");
                 return true;
             }
 
@@ -113,7 +113,7 @@ public class GuildCommand implements CommandExecutor {
         getSubCommand(args[0]).ifPresentOrElse(sub -> {
             if (sub.getAdminCommand()) return;
             sub.perform(player, args);
-        }, () -> sendError(player, "&c❌ Comando inválido. Use &f/guilda ajuda &cpara ver os comandos disponíveis."));
+        }, () -> sendError(player, "&c❌ Comando inválido. Use &f/clan ajuda &cpara ver os comandos disponíveis."));
 
         return true;
     }

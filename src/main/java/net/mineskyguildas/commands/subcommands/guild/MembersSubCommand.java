@@ -23,12 +23,12 @@ public class MembersSubCommand extends SubCommand {
 
     @Override
     public String getDescription() {
-        return "Lista dos membros de uma guilda";
+        return "Lista dos membros de um clã";
     }
 
     @Override
     public String getUsage() {
-        return "/guilda membros [tag]";
+        return "/clan membros [tag]";
     }
 
     @Override
@@ -48,7 +48,7 @@ public class MembersSubCommand extends SubCommand {
                 : GuildHandler.getGuildByPlayer(player.getUniqueId());
 
         if (guild == null) {
-            sendError(player, "&c❌ Essa guilda não existe.");
+            sendError(player, "&c❌ Esse clã não existe.");
             return;
         }
 

@@ -23,12 +23,12 @@ public class AnnouncerSubCommand extends SubCommand {
 
     @Override
     public String getDescription() {
-        return "Fazer um anúncio para todos os membros da guilda";
+        return "Fazer um anúncio para todos os membros do clã";
     }
 
     @Override
     public String getUsage() {
-        return "/guilda anunciar <mensagem>";
+        return "/clan anunciar <mensagem>";
     }
 
     @Override
@@ -44,13 +44,13 @@ public class AnnouncerSubCommand extends SubCommand {
     @Override
     public void perform(Player player, String[] args) {
         if (!GuildHandler.hasGuild(player)) {
-            sendError(player, "&4⚠ &cVocê não pertence a nenhuma guilda no momento.");
+            sendError(player, "&4⚠ &cVocê não pertence a nenhum clã no momento.");
             return;
         }
 
         Guilds guild = GuildHandler.getGuildByPlayer(player.getUniqueId());
         if (!(GuildRoles.isLeadership(guild.getRole(player.getUniqueId())))) {
-            sendError(player, "&4⚠ &cApenas os &lCAPITÕES&r &cda guilda pode anunciar.");
+            sendError(player, "&4⚠ &cApenas os &lCAPITÕES&r &cdo clã pode anunciar.");
             return;
         }
 

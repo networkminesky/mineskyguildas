@@ -29,12 +29,12 @@ public class CoordsSubCommand extends SubCommand {
 
     @Override
     public String getDescription() {
-        return "Visualizar a localização dos membros da guilda";
+        return "Visualizar a localização dos membros do clã";
     }
 
     @Override
     public String getUsage() {
-        return "/guilda coordendas [pública/privada]";
+        return "/clan coordendas [pública/privada]";
     }
 
     @Override
@@ -54,7 +54,7 @@ public class CoordsSubCommand extends SubCommand {
             Guilds guild = GuildHandler.getGuildByPlayer(player.getUniqueId());
 
             if (guild == null) {
-                sendError(player, "&c❌ Você não faz parte de uma guilda.");
+                sendError(player, "&c❌ Você não faz parte de um clã.");
                 return;
             }
 

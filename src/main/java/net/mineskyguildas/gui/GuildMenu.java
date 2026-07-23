@@ -45,7 +45,7 @@ public class GuildMenu implements Listener {
         ItemStack it = new ItemStack(m, count);
         ItemMeta im = it.getItemMeta();
         if (im != null) {
-            im.setDisplayName("§6§l" + Utils.c(name));
+            im.setDisplayName("§b§l" + Utils.c(name));
             im.setLore(Arrays.stream(lore)
                     .map(a -> Utils.c("&7" + a))
                     .collect(Collectors.toList()));
@@ -57,7 +57,7 @@ public class GuildMenu implements Listener {
     public static ItemStack simpleButton(ItemStack it, String name, String... lore) {
         ItemMeta im = it.getItemMeta();
         if (im != null) {
-            im.setDisplayName("§6§l" + Utils.c(name));
+            im.setDisplayName("§b§l" + Utils.c(name));
             im.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
             im.setLore(Arrays.stream(lore)
                     .map(a -> Utils.c("&7" + a))
@@ -72,7 +72,7 @@ public class GuildMenu implements Listener {
         SkullMeta im = (SkullMeta) it.getItemMeta();
         if (im != null) {
             im.setOwningPlayer(player);
-            im.setDisplayName("§6§l" + Utils.c(name));
+            im.setDisplayName("§b§l" + Utils.c(name));
             im.setLore(Arrays.stream(lore)
                     .map(a -> Utils.c("&7" + a))
                     .collect(Collectors.toList()));
@@ -90,7 +90,7 @@ public class GuildMenu implements Listener {
                 "&e➳ Clique esquerdo - Para abrir o menu."
         ));
         inv.setItem(4, simpleButton(
-                Material.PAINTING, "Guildas", "• Veja todas as guildas do servidor.",
+                Material.PAINTING, "Clãs", "• Veja todos os clãs do servidor.",
                 "",
                 "&e➳ Clique esquerdo - Para abrir o menu."
         ));
@@ -112,14 +112,14 @@ public class GuildMenu implements Listener {
                         Material.PLAYER_HEAD,
                         player,
                         player.getName(),
-                        "• Suas informações de guilda.",
+                        "• Suas informações de clã.",
                         " ",
-                        "&6Guilda: &e" + (guild == null ? "Sem Guilda" : guild.getName()) +
-                                (guild == null ? "" : " &6[&f" + guild.getTag() + "&6]"),
-                        "&6Cargo: &e" + (guild == null ? "Nenhum" : GuildRoles.getLabelRole(guild.getRole(player.getUniqueId()))),
-                        "&6Mortes: &e" + (int) deaths,
-                        "&6Kills: &e" + (int) kills,
-                        "&6KDR: &e" + new DecimalFormat("0.00").format(kdr)
+                        "&bClã: &3" + (guild == null ? "Sem Clã" : guild.getName()) +
+                                (guild == null ? "" : " &b[&f" + guild.getTag() + "&b]"),
+                        "&bCargo: &3" + (guild == null ? "Nenhum" : GuildRoles.getLabelRole(guild.getRole(player.getUniqueId()))),
+                        "&bMortes: &3" + (int) deaths,
+                        "&bKills: &3" + (int) kills,
+                        "&bKDR: &3" + new DecimalFormat("0.00").format(kdr)
                 );
 
                 player.getScheduler().run(MineSkyGuildas.getInstance(), task -> inv.setItem(0, playerHead), null);
@@ -128,7 +128,7 @@ public class GuildMenu implements Listener {
     }
 
     public static void openMainMenu(Player player) {
-        Inventory inv = Bukkit.createInventory(null, 9, "MineSky - Menu de guildas");
+        Inventory inv = Bukkit.createInventory(null, 9, "MineSky - Menu de clã");
         inventories.put(player.getUniqueId(), inv);
         reorganizeItems(player, inv);
         player.openInventory(inv);

@@ -12,7 +12,7 @@ commands:
   guildas:
     description: Comandos para gerenciar guildas
     usage: /guilda <subcomando>
-    aliases: [ guilds,guild,guilda, msguilda, msguild, clan ]
+    aliases: [ guilds,guild,guilda, msguilda, msguild, clan, clã, cla, clans, msclan, mscla, msclas ]
   .:
     description: Comando de chat da guilda.
     usage: /. <mensagem>

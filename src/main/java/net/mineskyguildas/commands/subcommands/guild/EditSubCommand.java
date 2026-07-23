@@ -21,12 +21,12 @@ public class EditSubCommand extends SubCommand {
 
     @Override
     public String getDescription() {
-        return "Alterar informações da guilda";
+        return "Alterar informações do clã";
     }
 
     @Override
     public String getUsage() {
-        return "/guilda editar [nome,tag,descrição]";
+        return "/clan editar [nome,tag,descrição]";
     }
 
     @Override
@@ -42,14 +42,14 @@ public class EditSubCommand extends SubCommand {
     @Override
     public void perform(Player player, String[] args) {
         if (!GuildHandler.hasGuild(player)) {
-            sendError(player, "&c⚠ Você não pertence a uma guilda.");
+            sendError(player, "&c⚠ Você não pertence a um clã.");
             return;
         }
 
         Guilds g = GuildHandler.getGuildByPlayer(player);
 
         if (!GuildRoles.isLeaders(g.getRole(player.getUniqueId()))) {
-            sendError(player, "&4⚠ &cApenas os &lLÍDERES&r &cda guilda pode sacar dinheiro do banco.");
+            sendError(player, "&4⚠ &cApenas os &lLÍDERES&r &cdo clã pode editar o clã.");
             return;
         }
         GuildEditMenu.openMainMenu(player);

@@ -90,9 +90,9 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.github.zBrunoC</groupId>
+      <groupId>com.github.networkminesky</groupId>
       <artifactId>mineskyvanish</artifactId>
-      <version>1.0.0</version>
+      <version>1.0.0-BETA</version>
       <scope>provided</scope>
     </dependency>
 

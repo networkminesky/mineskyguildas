@@ -39,7 +39,7 @@ public class PlayerListMenu implements Listener {
     public static ItemStack simpleButton(Material m, String name, String... lore) {
         ItemStack it = new ItemStack(m);
         ItemMeta im = it.getItemMeta();
-        im.setDisplayName(Utils.c("&6&l" + name));
+        im.setDisplayName(Utils.c("&b&l" + name));
         im.setLore(Arrays.stream(lore).map(a -> Utils.c("&7" + a)).collect(Collectors.toList()));
         it.setItemMeta(im);
         return it;
@@ -49,7 +49,7 @@ public class PlayerListMenu implements Listener {
         ItemStack skull = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) skull.getItemMeta();
         meta.setOwningPlayer(player);
-        meta.setDisplayName(Utils.c("&e" + player.getName()));
+        meta.setDisplayName(Utils.c("&3" + player.getName()));
         meta.setLore(Arrays.stream(lore).map(a -> Utils.c("&7" + a)).collect(Collectors.toList()));
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         skull.setItemMeta(meta);
@@ -101,7 +101,6 @@ public class PlayerListMenu implements Listener {
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenRun(() -> {
                 statsList.sort(Comparator.comparingDouble(PlayerStats::getKdr).reversed());
 
-                // Retorna para a thread do jogador para manipular a GUI com segurança no Folia
                 Utils.runOnPlayer(viewer, () -> {
                     int playersPerPage = 45;
                     int maxPage = (int) Math.ceil((double) statsList.size() / playersPerPage);
@@ -125,13 +124,13 @@ public class PlayerListMenu implements Listener {
 
                         inv.setItem(slot++, playerButton(
                                 op,
-                                "&6Posição: &e#" + (i + 1),
-                                "&6Guilda: &e" + (guild == null ? "Sem Guilda" : guild.getName()) +
-                                        (guild == null ? "" : " &6[&f" + guild.getTag() + "&6]"),
-                                "&6Cargo: &e" + (guild == null ? "Nenhum" : GuildRoles.getLabelRole(guild.getRole(op.getUniqueId()))),
-                                "&6Kills: &e" + ps.kills,
-                                "&6Mortes: &e" + ps.deaths,
-                                "&6KDR: &e" + new DecimalFormat("0.00").format(ps.kdr)
+                                "&bPosição: &3#" + (i + 1),
+                                "&bClã: &3" + (guild == null ? "Sem Clã" : guild.getName()) +
+                                        (guild == null ? "" : " &b[&f" + guild.getTag() + "&b]"),
+                                "&bCargo: &3" + (guild == null ? "Nenhum" : GuildRoles.getLabelRole(guild.getRole(op.getUniqueId()))),
+                                "&bKills: &3" + ps.kills,
+                                "&bMortes: &3" + ps.deaths,
+                                "&bKDR: &3" + new DecimalFormat("0.00").format(ps.kdr)
                         ));
                     }
 

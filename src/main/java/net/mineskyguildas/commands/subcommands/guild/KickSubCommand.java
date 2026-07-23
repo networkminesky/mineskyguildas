@@ -20,12 +20,12 @@ public class KickSubCommand extends SubCommand {
 
     @Override
     public String getDescription() {
-        return "Expulsar um membro da guilda";
+        return "Expulsar um membro do clã";
     }
 
     @Override
     public String getUsage() {
-        return "/guilda expulsar <membro>";
+        return "/clan expulsar <membro>";
     }
 
     @Override
@@ -41,13 +41,13 @@ public class KickSubCommand extends SubCommand {
     @Override
     public void perform(Player player, String[] args) {
         if (!GuildHandler.hasGuild(player)) {
-            sendError(player, "&4⚠ &cVocê não pertence a nenhuma guilda no momento.");
+            sendError(player, "&4⚠ &cVocê não pertence a nenhum clã no momento.");
             return;
         }
 
         Guilds guild = GuildHandler.getGuildByPlayer(player.getUniqueId());
         if (!(GuildRoles.isLeadership(guild.getRole(player.getUniqueId())))) {
-            sendError(player, "&4⚠ &cApenas os &lCAPITÕES&r &cda guilda pode expulsar membros.");
+            sendError(player, "&4⚠ &cApenas os &lCAPITÕES&r &cdo clã pode expulsar membros.");
             return;
         }
 
@@ -68,7 +68,7 @@ public class KickSubCommand extends SubCommand {
         }
 
         if (who.getUniqueId().equals(guild.getLeader())) {
-            sendError(player, "&4⚠ &cVocê não pode expulsar o líder da guilda.");
+            sendError(player, "&4⚠ &cVocê não pode expulsar o líder do clã.");
             return;
         }
 

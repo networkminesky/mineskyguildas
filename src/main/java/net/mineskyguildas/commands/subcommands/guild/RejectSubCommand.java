@@ -32,7 +32,7 @@ public class RejectSubCommand extends SubCommand {
 
     @Override
     public String getUsage() {
-        return "/guild rejeitar";
+        return "/clan rejeitar";
     }
 
     @Override
@@ -74,8 +74,8 @@ public class RejectSubCommand extends SubCommand {
             Guilds allyGuild = allyHandler.getRequestGuild(ownGuild);
 
             GuildHandler.broadcastGuildMessage(allyGuild, Utils.c("&c✘ O pedido de aliança enviado para &4" + ownGuild.getName() + " &cfoi rejeitado."));
-            GuildHandler.broadcastGuildMessage(ownGuild, Utils.c("&c✘ &4" + player.getName() + " &crejeitou o pedido de aliança da guilda &4" + allyGuild.getName() + "&c."));
-            player.sendMessage(Utils.c("&c✘ Você rejeitou o pedido de aliança da guilda &4" + allyGuild.getName() + "&c."));
+            GuildHandler.broadcastGuildMessage(ownGuild, Utils.c("&c✘ &4" + player.getName() + " &crejeitou o pedido de aliança do clã &4" + allyGuild.getName() + "&c."));
+            player.sendMessage(Utils.c("&c✘ Você rejeitou o pedido de aliança do clã &4" + allyGuild.getName() + "&c."));
 
             allyHandler.removeRequest(ownGuild);
             player.playSound(player, Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 1f);
@@ -86,8 +86,8 @@ public class RejectSubCommand extends SubCommand {
             Guilds g = rivalHandler.getRequestGuild(ownGuild);
 
             GuildHandler.broadcastGuildMessage(g, Utils.c("&c✘ O pedido de paz enviado para &4" + ownGuild.getName() + " &cfoi rejeitado."));
-            GuildHandler.broadcastGuildMessage(ownGuild, Utils.c("&c✘ &4" + player.getName() + " &crejeitou o pedido de paz da guilda &4" + g.getName() + "&c."));
-            player.sendMessage(Utils.c("&c✘ Você rejeitou o pedido de paz da guilda &4" + g.getName() + "&c."));
+            GuildHandler.broadcastGuildMessage(ownGuild, Utils.c("&c✘ &4" + player.getName() + " &crejeitou o pedido de paz do clã &4" + g.getName() + "&c."));
+            player.sendMessage(Utils.c("&c✘ Você rejeitou o pedido de paz do clã &4" + g.getName() + "&c."));
 
             rivalHandler.removeRequest(ownGuild);
             player.playSound(player, Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 1f);
@@ -96,13 +96,13 @@ public class RejectSubCommand extends SubCommand {
 
         if (hasInvite) {
             if (GuildHandler.hasGuild(player)) {
-                sendError(player, "&4⚠ &cVocê já faz parte de uma guilda. Saia dela antes de rejeitar outro convite.");
+                sendError(player, "&4⚠ &cVocê já faz parte de um clã. Saia dela antes de rejeitar outro convite.");
                 return;
             }
 
             Guilds guild = plugin.getInviteHandler().getInviteGuild(playerId);
-            GuildHandler.broadcastGuildMessage(guild, Utils.c("&c✘ &4" + player.getName() + " &crejeitou o convite da guilda."));
-            player.sendMessage(Utils.c("&c✘ Você rejeitou o convite da guilda &4" + guild.getName() + "&c."));
+            GuildHandler.broadcastGuildMessage(guild, Utils.c("&c✘ &4" + player.getName() + " &crejeitou o convite do clã."));
+            player.sendMessage(Utils.c("&c✘ Você rejeitou o convite do clã &4" + guild.getName() + "&c."));
 
             plugin.getInviteHandler().removeInvite(playerId);
             player.playSound(player, Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 1f);

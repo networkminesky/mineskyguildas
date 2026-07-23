@@ -20,12 +20,12 @@ public class BankSubCommand extends SubCommand {
 
     @Override
     public String getDescription() {
-        return "Gerenciar banco da guilda";
+        return "Gerenciar banco do clã";
     }
 
     @Override
     public String getUsage() {
-        return "/guilda banco [depositar,sacar]";
+        return "/clan banco [depositar,sacar]";
     }
 
     @Override
@@ -42,7 +42,7 @@ public class BankSubCommand extends SubCommand {
     public void perform(Player player, String[] args) {
         Guilds guild = GuildHandler.getGuildByPlayer(player);
         if (!GuildHandler.hasGuild(player) || guild == null) {
-            sendError(player, "&4⚠ &cVocê não pertence a uma guilda.");
+            sendError(player, "&4⚠ &cVocê não pertence a um clã.");
             return;
         }
 
@@ -63,7 +63,7 @@ public class BankSubCommand extends SubCommand {
             if (Vault.withdraw(player, value)) {
                 guild.deposit(value);
                 GuildHandler.broadcastGuildMessage(guild, "&3\uD83D\uDCB0 &b" + player.getName() + " &3depositou a quantia de &b$" + value + "&3!");
-                player.sendMessage(Utils.c("&aVocê deu $" + value + " para a sua guilda."));
+                player.sendMessage(Utils.c("&aVocê deu $" + value + " para a seu clã."));
             } else {
                 sendError(player, "&4⚠ &cVocê não tem dinheiro suficiente para depositar.");
                 return;
@@ -71,20 +71,20 @@ public class BankSubCommand extends SubCommand {
             return;
         } else if (args[1].equalsIgnoreCase("sacar")) {
             if (!GuildRoles.isLeaders(guild.getRole(player.getUniqueId()))) {
-                sendError(player, "&4⚠ &cApenas os &lLÍDERES&r &cda guilda pode sacar dinheiro do banco.");
+                sendError(player, "&4⚠ &cApenas os &lLÍDERES&r &cdo clã pode sacar dinheiro do banco.");
                 return;
             }
             if (guild.withdraw(value)) {
                 if (Vault.deposit(player, value)) {
                     guild.withdraw(value);
                     GuildHandler.broadcastGuildMessage(guild, "&3\uD83D\uDCB0 &b" + player.getName() + " &3sacou uma quantia de &b$" + value + "&3!");
-                    player.sendMessage(Utils.c("&aVocê sacou $" + value + " da sua guilda."));
+                    player.sendMessage(Utils.c("&aVocê sacou $" + value + " da seu clã."));
                 } else {
                     sendError(player, "&4⚠ &cOcorreu um erro ao depositar a sua conta.");
                     return;
                 }
             } else {
-                sendError(player, "&4⚠ &cA guilda não tem dinheiro suficiente.");
+                sendError(player, "&4⚠ &cO clã não tem dinheiro suficiente.");
                 return;
             }
         }

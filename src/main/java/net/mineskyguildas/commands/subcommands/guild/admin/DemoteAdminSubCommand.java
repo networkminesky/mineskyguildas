@@ -22,12 +22,12 @@ public class DemoteAdminSubCommand extends SubCommand {
 
     @Override
     public String getDescription() {
-        return "Rebaixa o cargo de um membro de qualquer guilda (somente admin).";
+        return "Rebaixa o cargo de um membro de qualquer clã (somente admin).";
     }
 
     @Override
     public String getUsage() {
-        return "/guilda admin rebaixar-admin <jogador>";
+        return "/clan admin rebaixar-admin <jogador>";
     }
 
     @Override
@@ -57,14 +57,14 @@ public class DemoteAdminSubCommand extends SubCommand {
 
         Guilds guild = GuildHandler.getGuildByPlayer(targetUUID);
         if (guild == null) {
-            sendError(player, "&4⚠ &cEste jogador não pertence a nenhuma guilda.");
+            sendError(player, "&4⚠ &cEste jogador não pertence a nenhum clã.");
             return;
         }
 
         GuildRoles targetRole = guild.getRole(targetUUID);
 
         if (targetRole == GuildRoles.LEADER) {
-            sendError(player, "&4⚠ &cVocê não pode rebaixar o líder da guilda!");
+            sendError(player, "&4⚠ &cVocê não pode rebaixar o líder do clã!");
             return;
         }
 
@@ -85,7 +85,7 @@ public class DemoteAdminSubCommand extends SubCommand {
         GuildHandler.broadcastGuildMessage(guild,
                 "&c➖ &4" + target.getName() + " &cfoi rebaixado a &4" + newRoleName + "&c!");
 
-        player.sendMessage("§cVocê rebaixou §4" + target.getName() + " §cda guilda §4" + guildName + " §cpara §4" + newRoleName + "§c!");
+        player.sendMessage("§cVocê rebaixou §4" + target.getName() + " §cdo clã §4" + guildName + " §cpara §4" + newRoleName + "§c!");
 
         if (target.isOnline() && target.getPlayer() != null) {
             target.getPlayer().sendMessage("§cVocê foi rebaixado a §4" + newRoleName + " §cpelo administrador §4" + player.getName() + "§c!");

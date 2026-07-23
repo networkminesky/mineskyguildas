@@ -19,12 +19,12 @@ public class FriendlyFireAdminSubCommand extends SubCommand {
 
     @Override
     public String getDescription() {
-        return "Ativar ou desativar o fogo amigo de todas as guildas.";
+        return "Ativar ou desativar o fogo amigo de todos os clãs.";
     }
 
     @Override
     public String getUsage() {
-        return "/guilda admin fogo-amigo-global [ativar/desativar]";
+        return "/clan admin fogo-amigo-global [ativar/desativar]";
     }
 
     @Override
@@ -56,8 +56,8 @@ public class FriendlyFireAdminSubCommand extends SubCommand {
             guild.setFriendlyFire(true);
         }
 
-        Bukkit.broadcastMessage(Utils.c("&b⚔ &3Todas as guildas tiveram o fogo-amigo habilitado&b!"));
-        player.sendMessage("§b⚔ Você habilitou o fogo-amigo em todas as guildas!");
+        Bukkit.broadcastMessage(Utils.c("&b⚔ &3Todos os clãs tiveram o fogo-amigo habilitado&b!"));
+        player.sendMessage("§b⚔ Você habilitou o fogo-amigo em todos os clãs!");
     }
 
     private void disableAllFriendlyFire(Player player) {
@@ -65,7 +65,7 @@ public class FriendlyFireAdminSubCommand extends SubCommand {
             guild.setFriendlyFire(false);
         }
 
-        Bukkit.broadcastMessage(Utils.c("&b⚔ &3Todas as guildas tiveram o fogo-amigo desabilitado&b!"));
-        player.sendMessage("§b⚔ Você desabilitou o fogo-amigo em todas as guildas!");
+        Bukkit.broadcastMessage(Utils.c("&b⚔ &3Todos os clãs tiveram o fogo-amigo desabilitado&b!"));
+        player.sendMessage("§b⚔ Você desabilitou o fogo-amigo em todos os clãs!");
     }
 }

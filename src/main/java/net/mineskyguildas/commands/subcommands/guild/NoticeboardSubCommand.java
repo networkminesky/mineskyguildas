@@ -19,12 +19,12 @@ public class NoticeboardSubCommand extends SubCommand {
 
     @Override
     public String getDescription() {
-        return "Veja todas as notificações da guilda";
+        return "Veja todas as notificações do clã";
     }
 
     @Override
     public String getUsage() {
-        return "/guilda mural";
+        return "/clan mural";
     }
 
     @Override
@@ -40,18 +40,18 @@ public class NoticeboardSubCommand extends SubCommand {
     @Override
     public void perform(Player player, String[] args) {
         if (!GuildHandler.hasGuild(player)) {
-            sendError(player, "&4⚠ &cVocê não pertence a nenhuma guilda no momento.");
+            sendError(player, "&4⚠ &cVocê não pertence a nenhum clã no momento.");
             return;
         }
 
         Guilds guild = GuildHandler.getGuildByPlayer(player.getUniqueId());
         if (guild == null) {
-            sendError(player, "&4⚠ &cVocê não pertence a nenhuma guilda no momento");
+            sendError(player, "&4⚠ &cVocê não pertence a nenhum clã no momento");
             return;
         }
         List<Notice> notices = guild.getNoticeBoard();
 
-        player.sendMessage(Utils.c("&e✉ &6Mural da Guilda &e" + guild.getName() + ":"));
+        player.sendMessage(Utils.c("&e✉ &6Mural do clã &e" + guild.getName() + ":"));
 
         if (notices.isEmpty()) {
             player.sendMessage(Utils.c("&7(sem mensagens ainda)"));

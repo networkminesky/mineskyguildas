@@ -35,7 +35,7 @@ public class AcceptSubCommand extends SubCommand {
 
     @Override
     public String getUsage() {
-        return "/guild aceitar";
+        return "/clan aceitar";
     }
 
     @Override
@@ -82,7 +82,7 @@ public class AcceptSubCommand extends SubCommand {
                 return;
             }
 
-            player.sendMessage(Utils.c("&2🤝 &aVocê aceitou o pedido de aliança da guilda &2" + allyGuild.getName() + "&a!"));
+            player.sendMessage(Utils.c("&2🤝 &aVocê aceitou o pedido de aliança do clã &2" + allyGuild.getName() + "&a!"));
             GuildHandler.addAlly(allyGuild, ownGuild, player);
             allyHandler.removeRequest(ownGuild);
             player.playSound(player, Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);
@@ -99,7 +99,7 @@ public class AcceptSubCommand extends SubCommand {
                 return;
             }
 
-            player.sendMessage(Utils.c("&2🕊 &aVocê aceitou o pedido de paz da guilda &2" + rivalGuild.getName() + "&a!"));
+            player.sendMessage(Utils.c("&2🕊 &aVocê aceitou o pedido de paz do clã &2" + rivalGuild.getName() + "&a!"));
             GuildHandler.removeRival(rivalGuild, ownGuild, player);
             rivalHandler.removeRequest(ownGuild);
             player.playSound(player, Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);
@@ -108,7 +108,7 @@ public class AcceptSubCommand extends SubCommand {
 
         if (hasInvite) {
             if (GuildHandler.hasGuild(player)) {
-                sendError(player, "&4⚠ &CVocê já faz parte de uma guilda. Saia dela antes de aceitar outro convite.");
+                sendError(player, "&4⚠ &CVocê já faz parte de um clã. Saia dela antes de aceitar outro convite.");
                 return;
             }
 
@@ -116,16 +116,16 @@ public class AcceptSubCommand extends SubCommand {
             PlayerJoinGuildEvent event = new PlayerJoinGuildEvent(player, guild);
             plugin.getServer().getPluginManager().callEvent(event);
             if (event.isCancelled()) {
-                player.sendMessage(event.CancelledMessage == null ? Utils.c("&c⚠ Ops! A entrada na guilda foi interrompida pela API.") : event.CancelledMessage);
+                player.sendMessage(event.CancelledMessage == null ? Utils.c("&c⚠ Ops! A entrada no clã foi interrompida pela API.") : event.CancelledMessage);
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1, 1);
                 return;
             }
 
             GuildHandler.addMember(player, guild);
-            String msg = "&3🏰 &b" + player.getName() + " &3entrou na guilda &b" + guild.getName() + "&3!";
+            String msg = "&3🏰 &b" + player.getName() + " &3entrou no clã &b" + guild.getName() + "&3!";
             Bukkit.broadcastMessage(Utils.c(msg));
             GuildHandler.addNotice(guild, Utils.c(msg));
-            player.sendMessage(Utils.c("&a✅ Você entrou na guilda &2" + guild.getName() + "&a com sucesso!"));
+            player.sendMessage(Utils.c("&a✅ Você entrou no clã &2" + guild.getName() + "&a com sucesso!"));
             plugin.getInviteHandler().removeInvite(playerId);
             player.playSound(player, Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);
         }

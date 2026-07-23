@@ -234,8 +234,8 @@ public class GuildHandler {
     public static void addAlly(Guilds guild, Guilds ally, Player player) {
         guild.addAlly(ally.getId());
         ally.addAlly(guild.getId());
-        broadcastGuildMessage(guild, Utils.c("&b🤝 &3Sua guilda selou uma aliança com &b" + ally.getName() + "&3!"));
-        broadcastGuildMessage(ally, Utils.c("&3🤝 &b" + guild.getName() + " &3formou uma aliança com sua guilda!"));
+        broadcastGuildMessage(guild, Utils.c("&b🤝 &3Seu clã selou uma aliança com &b" + ally.getName() + "&3!"));
+        broadcastGuildMessage(ally, Utils.c("&3🤝 &b" + guild.getName() + " &3formou uma aliança com seu clã!"));
         saveGuildas();
     }
 
@@ -250,16 +250,16 @@ public class GuildHandler {
     public static void addRival(Guilds guild, Guilds rival, Player player) {
         guild.addRival(rival.getId());
         rival.addRival(guild.getId());
-        broadcastGuildMessage(rival, Utils.c("&4⚔ &cA guilda &f" + guild.getName() + " &cdeclarou rivalidade com a sua guilda!"));
-        broadcastGuildMessage(guild, Utils.c("&c😡 &4" + player.getName() + " &cdeclarou rivalidade com a guilda &f" + rival.getName() + "&c."));
+        broadcastGuildMessage(rival, Utils.c("&4⚔ &cO clã &f" + guild.getName() + " &cdeclarou rivalidade com a seu clã!"));
+        broadcastGuildMessage(guild, Utils.c("&c😡 &4" + player.getName() + " &cdeclarou rivalidade com o clã &f" + rival.getName() + "&c."));
         saveGuildas();
     }
 
     public static void removeRival(Guilds guild, Guilds rival, Player player) {
         guild.removeRival(rival);
         rival.removeRival(guild);
-        broadcastGuildMessage(guild, Utils.c("&2✌ &aA guilda &f" + rival.getName() + " &aremoveu a rivalidade com a sua guilda."));
-        broadcastGuildMessage(rival, Utils.c("&a✅ &2" + player.getName() + " &aremoveu a rivalidade com a guilda &f" + guild.getName() + "&a."));
+        broadcastGuildMessage(guild, Utils.c("&2✌ &aO clã &f" + rival.getName() + " &aremoveu a rivalidade com a seu clã."));
+        broadcastGuildMessage(rival, Utils.c("&a✅ &2" + player.getName() + " &aremoveu a rivalidade com o clã &f" + guild.getName() + "&a."));
         saveGuildas();
     }
 
@@ -355,12 +355,10 @@ public class GuildHandler {
     }
 
     public static boolean hasGuild(Player player) {
-        for (Guilds guild : guildas.values()) {
-            if (guild.getMembers().containsKey(player.getUniqueId())) {
-                return true;
-            }
-        }
-        return false;
+        if (player == null) return false;
+
+        return guildas.values().stream()
+                .anyMatch(guild -> guild.getMembers().containsKey(player.getUniqueId()));
     }
 
     public static void broadcastGuildMessage(Guilds guild, String message) {

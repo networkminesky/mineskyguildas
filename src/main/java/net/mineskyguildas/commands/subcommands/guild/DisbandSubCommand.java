@@ -26,12 +26,12 @@ public class DisbandSubCommand extends SubCommand {
 
     @Override
     public String getDescription() {
-        return "Deletar sua guilda atual";
+        return "Deletar seu clã atual";
     }
 
     @Override
     public String getUsage() {
-        return "/guilda desbandar";
+        return "/clan desbandar";
     }
 
     @Override
@@ -47,27 +47,27 @@ public class DisbandSubCommand extends SubCommand {
     @Override
     public void perform(Player player, String[] args) {
         if (!GuildHandler.hasGuild(player)) {
-            sendError(player, "&4⚠ &cVocê não pertence a nenhuma guilda no momento.");
+            sendError(player, "&4⚠ &cVocê não pertence a nenhum clã no momento.");
             return;
         }
 
         Guilds guild = GuildHandler.getGuildByPlayer(player.getUniqueId());
         if (!(guild.getRole(player.getUniqueId()) == GuildRoles.LEADER)) {
-            sendError(player, "&4⚠ &cApenas o &lLÍDER&r &cda guilda pode desbandar.");
+            sendError(player, "&4⚠ &cApenas o &lLÍDER&r &cdo clã pode desbandar.");
             return;
         }
 
-        confirmAction(player, "desbandar sua guilda", () -> {
+        confirmAction(player, "desbandar seu clã", () -> {
             GuildDisbandEvent event = new GuildDisbandEvent(player, guild);
             plugin.getServer().getPluginManager().callEvent(event);
             if (event.isCancelled()) {
-                player.sendMessage((event.CancelledMessage == null? Utils.c("&c⚠ Ops! A entrada na guilda foi interrompida pela API.") : event.CancelledMessage));
+                player.sendMessage((event.CancelledMessage == null? Utils.c("&c⚠ Ops! A entrada no clã foi interrompida pela API.") : event.CancelledMessage));
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO,1, 1);
                 return;
             }
-            Bukkit.broadcastMessage(Utils.c("&4⛔ &cA guilda &f" + guild.getName() + " &cfoi desbandada."));
+            Bukkit.broadcastMessage(Utils.c("&4⛔ &cO clã &f" + guild.getName() + " &cfoi desbandada."));
             GuildHandler.deleteGuild(guild.getId());
-            player.sendMessage(Utils.c("&2✅ &aGuilda desbandada com sucesso."));
+            player.sendMessage(Utils.c("&2✅ &aO clã foi desbandada com sucesso."));
         });
     }
 }

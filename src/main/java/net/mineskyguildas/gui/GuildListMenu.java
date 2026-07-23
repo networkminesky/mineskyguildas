@@ -36,7 +36,7 @@ public class GuildListMenu implements Listener {
     public static ItemStack simpleButton(Material m, String name, String... lore) {
         ItemStack it = new ItemStack(m);
         ItemMeta im = it.getItemMeta();
-        im.setDisplayName(Utils.c("&6&l" + name));
+        im.setDisplayName(Utils.c("&b&l" + name));
         im.setLore(Arrays.stream(lore).map(a -> Utils.c("&7" + a)).collect(Collectors.toList()));
         it.setItemMeta(im);
         return it;
@@ -44,7 +44,7 @@ public class GuildListMenu implements Listener {
 
     public static ItemStack simpleButton(ItemStack it, String name, String... lore) {
         ItemMeta im = it.getItemMeta();
-        im.setDisplayName("§6§l" + Utils.c(name));
+        im.setDisplayName("§b§l" + Utils.c(name));
         im.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
         im.setLore(Arrays.stream(lore).map(a -> Utils.c("&7" + a)).collect(Collectors.toList()));
         it.setItemMeta(im);
@@ -102,7 +102,7 @@ public class GuildListMenu implements Listener {
     }
 
     public static void openMainMenu(Player player, int page) {
-        Inventory inv = Bukkit.createInventory(null, 54, Utils.c("§8Guildas — Página 1"));
+        Inventory inv = Bukkit.createInventory(null, 54, Utils.c("§8Clãs — Página 1"));
         inventories.put(player, inv);
         reorganizeItems(player, inv, page);
         player.openInventory(inv);

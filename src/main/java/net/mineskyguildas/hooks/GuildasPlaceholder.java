@@ -5,8 +5,11 @@ import net.mineskyguildas.MineSkyGuildas;
 import net.mineskyguildas.handlers.GuildHandler;
 import net.mineskyguildas.data.Guilds;
 import net.mineskyguildas.utils.Utils;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 public class GuildasPlaceholder extends PlaceholderExpansion {
 
@@ -41,7 +44,11 @@ public class GuildasPlaceholder extends PlaceholderExpansion {
         if (player == null) return "";
 
         Guilds guild = GuildHandler.getGuildByPlayer(player.getUniqueId());
-        if (guild == null) return "";
+        if (guild == null) {
+            if (Objects.equals(identifier, "scoreboard"))
+                return Utils.c(" &cSem clã.");
+            return "";
+        }
 
         switch (identifier) {
             case "name":
@@ -56,6 +63,8 @@ public class GuildasPlaceholder extends PlaceholderExpansion {
                 return String.valueOf(GuildHandler.getGuildByPlayer(player).getBalance());
             case "label":
                 return (GuildHandler.hasGuild(player) ? Utils.getGuildTagWithRole(player.getUniqueId()) : "");
+            case "scoreboard":
+                return (GuildHandler.hasGuild(player) ? Utils.getGuildTagWithRole(player.getUniqueId()) : Utils.c(" &cSem Clã."));
             default:
                 return "";
         }

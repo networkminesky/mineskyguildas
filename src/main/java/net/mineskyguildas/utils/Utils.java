@@ -138,17 +138,17 @@ public class Utils {
                 : new ItemStack(Material.GREEN_BANNER);
         ItemMeta im = it.getItemMeta();
 
-        String title = (g == null ? "Agente Livre" : g.getName() + " &6[&f" + g.getTag() + "&6]");
-        im.setDisplayName("§6§l" + Utils.c(title));
+        String title = (g == null ? "Agente Livre" : g.getName() + " &b[&f" + g.getTag() + "&b]");
+        im.setDisplayName("§b§l" + Utils.c(title));
         im.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
 
         if (g == null) {
             List<String> lore = Arrays.asList(
-                    "&7• Você não está em uma guilda.",
+                    "&7• Você não está em um clã.",
                     " ",
-                    "&6Preço: &e1,500",
+                    "&bPreço: &31,500",
                     " ",
-                    "&e➳ Clique esquerdo - Para criar uma guilda."
+                    "&e➳ Clique esquerdo - Para criar um clã."
             );
             im.setLore(lore.stream().map(Utils::c).collect(Collectors.toList()));
             it.setItemMeta(im);
@@ -158,18 +158,18 @@ public class Utils {
 
         GuildStatsManager.calculateGuildStats(g, (totalKills, totalDeaths, kdr) -> {
             List<String> lore = new ArrayList<>();
-            lore.add("&7• Informações da guilda.");
+            lore.add("&7• Informações do clã.");
             lore.add(" ");
-            lore.add("&6Descrição: &e" + (g.getDescription() == null ? "Sem descrição" : g.getDescription()));
-            lore.add("&6Level: &e" + g.getLevel());
-            lore.add("&6XP: &e" + g.getXp() + "/" + g.xpRequiredForNextLevel());
-            lore.add("&6Líder: &e" + Bukkit.getOfflinePlayer(g.getLeader()).getName());
-            lore.add("&6Membros: &e" + GuildHandler.getOnlineMembers(g));
-            lore.add("&6Kills totais: &e" + totalKills);
-            lore.add("&6Mortes totais: &e" + totalDeaths);
-            lore.add("&6KDR médio: &e" + new DecimalFormat("0.00").format(kdr));
-            lore.add("&6Rivais: &e" + (g.getRivals().isEmpty() ? "Nenhum" : String.join("&6, &e", GuildHandler.getRivalsTags(g))));
-            lore.add("&6Aliados: &e" + (g.getAllies().isEmpty() ? "Nenhum" : String.join("&6, &e", GuildHandler.getAlliesTags(g))));
+            lore.add("&bDescrição: &3" + (g.getDescription() == null ? "Sem descrição" : g.getDescription()));
+            lore.add("&bLevel: &3" + g.getLevel());
+            lore.add("&bXP: &3" + g.getXp() + "/" + g.xpRequiredForNextLevel());
+            lore.add("&bLíder: &3" + Bukkit.getOfflinePlayer(g.getLeader()).getName());
+            lore.add("&bMembros: &3" + GuildHandler.getOnlineMembers(g));
+            lore.add("&bKills totais: &3" + totalKills);
+            lore.add("&bMortes totais: &3" + totalDeaths);
+            lore.add("&bKDR médio: &3" + new DecimalFormat("0.00").format(kdr));
+            lore.add("&bRivais: &3" + (g.getRivals().isEmpty() ? "Nenhum" : String.join("&b, &3", GuildHandler.getRivalsTags(g))));
+            lore.add("&bAliados: &3" + (g.getAllies().isEmpty() ? "Nenhum" : String.join("&b, &3", GuildHandler.getAlliesTags(g))));
             lore.add(" ");
 
             im.setLore(lore.stream().map(Utils::c).collect(Collectors.toList()));

@@ -22,12 +22,12 @@ public class PromoteSubCommand extends SubCommand {
 
     @Override
     public String getDescription() {
-        return "Promove o cargo de um membro da guilda.";
+        return "Promove o cargo de um membro do clã.";
     }
 
     @Override
     public String getUsage() {
-        return "/guilda promover <membro> <cargo>";
+        return "/clan promover <membro> <cargo>";
     }
 
     @Override
@@ -43,7 +43,7 @@ public class PromoteSubCommand extends SubCommand {
     @Override
     public void perform(Player player, String[] args) {
         if (!GuildHandler.hasGuild(player)) {
-            sendError(player, "&4⚠ &cVocê não pertence a nenhuma guilda no momento.");
+            sendError(player, "&4⚠ &cVocê não pertence a nenhum clã no momento.");
             return;
         }
 
@@ -69,7 +69,7 @@ public class PromoteSubCommand extends SubCommand {
         }
 
         if (!GuildHandler.hasGuild(target.getPlayer()) || !GuildHandler.getGuildByPlayer(targetUUID).equals(guild)) {
-            sendError(player, "&4⚠ &cEste jogador não é membro da sua guilda.");
+            sendError(player, "&4⚠ &cEste jogador não é membro do seu clã.");
             return;
         }
 

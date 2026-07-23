@@ -44,7 +44,7 @@ public class GuildInfoMenu implements Listener {
         ItemStack it = new ItemStack(m, count);
         ItemMeta im = it.getItemMeta();
 
-        im.setDisplayName("§6§l"+ Utils.c(name));
+        im.setDisplayName("§b§l"+ Utils.c(name));
 
         im.setLore(Arrays.stream(lore)
                 .map(a -> Utils.c("&7"+a))
@@ -57,7 +57,7 @@ public class GuildInfoMenu implements Listener {
     public static ItemStack simpleButton(ItemStack it, String name, String... lore) {
         ItemMeta im = it.getItemMeta();
 
-        im.setDisplayName("§6§l"+Utils.c(name));
+        im.setDisplayName("§b§l"+Utils.c(name));
         im.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
 
         im.setLore(Arrays.stream(lore)
@@ -72,7 +72,7 @@ public class GuildInfoMenu implements Listener {
         ItemStack it = new ItemStack(m, 1);
         SkullMeta im = (SkullMeta) it.getItemMeta();
         im.setOwningPlayer(player);
-        im.setDisplayName("§6§l"+Utils.c(name));
+        im.setDisplayName("§b§l"+Utils.c(name));
 
         im.setLore(Arrays.stream(lore)
                 .map(a -> Utils.c("&7"+a))
@@ -94,13 +94,13 @@ public class GuildInfoMenu implements Listener {
         inv.setItem(21, simpleButton(Material.COMPASS, "Coordenadas", "• Visualizar as coordenadas de todos os membros.", "", "&e➳ Clique esquerdo - Para visualizar."));
         inv.setItem(23, simpleButton(Material.CYAN_BANNER, "Aliados", "• Gerenciar os aliados.", "", "&e➳ Clique esquerdo - Para adicionar um aliado.", "&e➳ Clique esquerdo - Para remover um aliado.", "&e➳ Drope - Para listar os aliados."));
         inv.setItem(25, simpleButton(Material.RED_BANNER, "Rivais", "• Gerenciar os rivais.", "", "&e➳ Clique esquerdo - Para adicionar um rival.", "&e➳ Clique esquerdo - Para remover um rival.", "&e➳ Drope - Para listar os rivais."));
-        inv.setItem(28, simpleButton(Material.LIME_BED, "Base", "• Gerenciar a base da guilda.", "", "&e➳ Clique esquerdo - Para se teleportar.", "&e➳ Clique esquerdo - Para setar um novo local.", "&e➳ Drope - Para remover a base."));
-        inv.setItem(30, simpleButton(Material.BEACON, "Reagrupar", "• Um pedido de teleporte para todos da guilda.", "", "&e➳ Clique esquerdo - Para enviar para a sua localização.", "&e➳ Clique direito - Para enviar para a base da guilda."));
-        inv.setItem(32, simpleButton(Material.NETHERITE_SWORD, "Fogo-amigo", "• Gerenciar o fogo amigo da guilda.", "", "&e➳ Clique esquerdo - Para alterar o status do fogo-amigo."));
-        inv.setItem(34, simpleButton(Material.RAW_GOLD, "Banco", "• Banco da guilda.", "", "&6Saldo: &e$" + g.getBalance(), "", "&e➳ Clique esquerdo - Para depositar.", "&e➳ Clique direito - Para sacar."));
-        inv.setItem(40, simpleButton(Material.KNOWLEDGE_BOOK, "Chat", "• Enviar mensagem para a guilda.", "", "&6/. <mensagem> &e- Chat da guilda", "&6/ally <mensagem> &e- Chat de aliados da guilda.", "&6/lideres <mensagem> &e- Chat exclusivo dos líderes da guilda."));
-        inv.setItem(48, simpleButton(Material.IRON_DOOR, "Abandonar", "• Sair da sua guilda.", "", "&e➳ Clique esquerdo - Para sair da guilda."));
-        inv.setItem(50, simpleButton(Material.REDSTONE, "Acabar", "• Acabar com a guilda.", "", "&e➳ Drope - Para acabar com a guilda."));
+        inv.setItem(28, simpleButton(Material.LIME_BED, "Base", "• Gerenciar a base do clã.", "", "&e➳ Clique esquerdo - Para se teleportar.", "&e➳ Clique esquerdo - Para setar um novo local.", "&e➳ Drope - Para remover a base."));
+        inv.setItem(30, simpleButton(Material.BEACON, "Reagrupar", "• Um pedido de teleporte para todos do clã.", "", "&e➳ Clique esquerdo - Para enviar para a sua localização.", "&e➳ Clique direito - Para enviar para a base do clã."));
+        inv.setItem(32, simpleButton(Material.NETHERITE_SWORD, "Fogo-amigo", "• Gerenciar o fogo amigo do clã.", "", "&e➳ Clique esquerdo - Para alterar o status do fogo-amigo."));
+        inv.setItem(34, simpleButton(Material.RAW_GOLD, "Banco", "• Banco do clã.", "", "&6Saldo: &e$" + g.getBalance(), "", "&e➳ Clique esquerdo - Para depositar.", "&e➳ Clique direito - Para sacar."));
+        inv.setItem(40, simpleButton(Material.KNOWLEDGE_BOOK, "Chat", "• Enviar mensagem para o clã.", "", "&6/. <mensagem> &e- Chat do clã", "&6/ally <mensagem> &e- Chat de aliados do clã.", "&6/lideres <mensagem> &e- Chat exclusivo dos líderes do clã."));
+        inv.setItem(48, simpleButton(Material.IRON_DOOR, "Abandonar", "• Sair do seu clã.", "", "&e➳ Clique esquerdo - Para sair do clã."));
+        inv.setItem(50, simpleButton(Material.REDSTONE, "Acabar", "• Acabar com o clã.", "", "&e➳ Drope - Para acabar com o clã."));
     }
 
     public static void openMainMenu(Player player) {

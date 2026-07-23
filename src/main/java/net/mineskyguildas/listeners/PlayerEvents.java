@@ -46,7 +46,7 @@ public class PlayerEvents implements Listener {
 
             List<Notice> notices = guild.getNoticeBoard();
 
-            player.sendMessage(Utils.c("&e✉ &6Mural da Guilda &e" + guild.getName() + ":"));
+            player.sendMessage(Utils.c("&e✉ &6Mural do clã &e" + guild.getName() + ":"));
 
             if (notices.isEmpty()) {
                 player.sendMessage(Utils.c("&7(sem mensagens ainda)"));
@@ -75,7 +75,7 @@ public class PlayerEvents implements Listener {
         if (damagedGuild.getId().equals(damagerGuild.getId()) || damagedGuild.isAlly(damagerGuild)) {
             if (!damagedGuild.getFriendlyFire()) {
                 e.setCancelled(true);
-                damager.sendMessage(Utils.c("&cVocê não pode atacar membros da sua guilda ou aliados!"));
+                damager.sendMessage(Utils.c("&cVocê não pode atacar membros do seu clã ou aliados!"));
             }
         }
     }
@@ -112,7 +112,7 @@ public class PlayerEvents implements Listener {
         if (guild != null) {
             GuildHandler.addXpToGuild(killer.getUniqueId(), 0.5);
             killer.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                    new TextComponent(Utils.c("&7☠ &4+&c1 XP &4para sua guilda por derrotar um mob hostil&c!")));
+                    new TextComponent(Utils.c("&7☠ &4+&c1 XP &4para seu clã por derrotar um mob hostil&c!")));
         }
     }
 

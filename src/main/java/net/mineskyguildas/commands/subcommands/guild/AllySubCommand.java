@@ -33,7 +33,7 @@ public class AllySubCommand extends SubCommand {
 
     @Override
     public String getUsage() {
-        return "/guilda aliado <adicionar/remover/list> <guilda>";
+        return "/clan aliado <adicionar/remover/list> <clan>";
     }
 
     @Override
@@ -49,13 +49,13 @@ public class AllySubCommand extends SubCommand {
     @Override
     public void perform(Player player, String[] args) {
         if (args.length < 2) {
-            sendError(player, "&c❗ Uso correto: &f/guilda aliado <adicionar/remover> <guilda>");
+            sendError(player, "&c❗ Uso correto: &f/clan aliado <adicionar/remover> <clan>");
             return;
         }
 
         Guilds guild = GuildHandler.getGuildByPlayer(player.getUniqueId());
         if (guild == null) {
-            sendError(player, "&c🚫 Você não faz parte de nenhuma guilda.");
+            sendError(player, "&c🚫 Você não faz parte de nenhum clã.");
             return;
         }
 
@@ -71,18 +71,18 @@ public class AllySubCommand extends SubCommand {
         switch (args[1].toLowerCase()) {
             case "adicionar", "add" -> {
                 if (args.length < 3) {
-                    sendError(player, "&c❗ Uso correto: &f/guilda aliado adicionar <guilda>");
+                    sendError(player, "&c❗ Uso correto: &f/clan aliado adicionar <clan>");
                     return;
                 }
 
                 Guilds guildaTarget = GuildHandler.getGuildByTag(args[2]);
                 if (guildaTarget == null) {
-                    sendError(player, "&c❌ Essa guilda não existe.");
+                    sendError(player, "&c❌ Esse clã não existe.");
                     return;
                 }
 
                 if (guildaTarget.getName().equalsIgnoreCase(guild.getName())) {
-                    sendError(player, "&4🤦 &cVocê não pode formar aliança com sua própria guilda.");
+                    sendError(player, "&4🤦 &cVocê não pode formar aliança com seu próprio clã.");
                     return;
                 }
 
@@ -92,13 +92,13 @@ public class AllySubCommand extends SubCommand {
                 }
 
                 if (guild.isAlly(guildaTarget)) {
-                    sendError(player, "&4🤝 &cSua guilda já é aliada da &f" + guildaTarget.getName() + ".");
+                    sendError(player, "&4🤝 &cSeu clã já é aliada da &f" + guildaTarget.getName() + ".");
                     return;
                 }
 
                 if (allyHandler.hasRequest(guildaTarget) &&
                         allyHandler.getRequestGuild(guildaTarget).getId().equals(guild.getId())) {
-                    sendError(player, "&4📨 &cO pedido de aliança já foi enviado para essa guilda.");
+                    sendError(player, "&4📨 &cO pedido de aliança já foi enviado para esse clã.");
                     return;
                 }
 
@@ -107,30 +107,30 @@ public class AllySubCommand extends SubCommand {
             }
             case "remover", "remove" -> {
                 if (args.length < 3) {
-                    sendError(player, "&c❗ Uso correto: &f/guilda aliado remover <guilda>");
+                    sendError(player, "&c❗ Uso correto: &f/clan aliado remover <clan>");
                     return;
                 }
 
                 Guilds guildaTarget = GuildHandler.getGuildByTag(args[2]);
                 if (guildaTarget == null) {
-                    sendError(player, "&c❌ Essa guilda não existe.");
+                    sendError(player, "&c❌ Esse clã não existe.");
                     return;
                 }
 
                 if (guildaTarget.getName().equalsIgnoreCase(guild.getName())) {
-                    sendError(player, "&4🤔 &cVocê não pode remover a aliança com sua própria guilda.");
+                    sendError(player, "&4🤔 &cVocê não pode remover a aliança com seu próprio clã.");
                     return;
                 }
 
                 if (!guild.isAlly(guildaTarget)) {
-                    sendError(player, "&c❌ Sua guilda não possui aliança com &f" + guildaTarget.getName() + "&c.");
+                    sendError(player, "&c❌ Seu clã não possui aliança com &f" + guildaTarget.getName() + "&c.");
                     return;
                 }
 
                 GuildRemoveAllyEvent event = new GuildRemoveAllyEvent(guild, guildaTarget, player);
                 plugin.getServer().getPluginManager().callEvent(event);
                 if (event.isCancelled()) {
-                    player.sendMessage((event.CancelledMessage == null ? Utils.c("&c⚠ Ops! A entrada na guilda foi interrompida pela API.") : event.CancelledMessage));
+                    player.sendMessage((event.CancelledMessage == null ? Utils.c("&c⚠ Ops! A entrada no clã foi interrompida pela API.") : event.CancelledMessage));
                     player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1, 1);
                     return;
                 }
@@ -142,7 +142,7 @@ public class AllySubCommand extends SubCommand {
                 if (args.length >= 3) {
                     targetGuild = GuildHandler.getGuildByTag(args[2]);
                     if (targetGuild == null) {
-                        sendError(player, "&c❌ A guilda &f" + args[2] + " &cnão existe.");
+                        sendError(player, "&c❌ O clã &f" + args[2] + " &cnão existe.");
                         return;
                     }
                 }
@@ -154,7 +154,7 @@ public class AllySubCommand extends SubCommand {
                         .toList();
 
                 player.sendMessage(Utils.c("&8&m----------------------------------------"));
-                player.sendMessage(Utils.c("&b🤝 Alianças da guilda &f" + targetGuild.getName() + "&b:"));
+                player.sendMessage(Utils.c("&b🤝 Alianças do clã &f" + targetGuild.getName() + "&b:"));
                 player.sendMessage(Utils.c("&7Total: &f" + allies.size()));
 
                 if (allies.isEmpty()) {
@@ -169,7 +169,7 @@ public class AllySubCommand extends SubCommand {
                 player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1.2f);
             }
             default -> {
-                sendError(player, "&c❗ Subcomando inválido. Use: &f/guilda adicionar &cou &f/guilda remover");
+                sendError(player, "&c❗ Subcomando inválido. Use: &f/clan adicionar &cou &f/clan remover");
             }
         }
     }

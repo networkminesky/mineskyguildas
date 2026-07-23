@@ -45,7 +45,7 @@ public class GuildChatCommand implements CommandExecutor, TabCompleter {
 
         Guilds guild = handler.getGuildByPlayer(player.getUniqueId());
         if (guild == null) {
-            player.sendMessage(Utils.c("§c🚫 Você não faz parte de nenhuma guilda."));
+            player.sendMessage(Utils.c("§c🚫 Você não faz parte de nenhum clã."));
             player.playSound(player, Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 1f);
             return true;
         }
@@ -59,7 +59,7 @@ public class GuildChatCommand implements CommandExecutor, TabCompleter {
         PlayerChatEvent event = new PlayerChatEvent(player, guild, message, type);
         plugin.getServer().getPluginManager().callEvent(event);
         if (event.isCancelled()) {
-            player.sendMessage((event.CancelledMessage == null ? Utils.c("&c⚠ Ops! A entrada na guilda foi interrompida pela API.") : event.CancelledMessage));
+            player.sendMessage((event.CancelledMessage == null ? Utils.c("&c⚠ Ops! A entrada no clã foi interrompida pela API.") : event.CancelledMessage));
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1, 1);
             return true;
         }

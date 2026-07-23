@@ -26,7 +26,7 @@ public class SpySubCommand extends SubCommand {
 
     @Override
     public String getUsage() {
-        return "/guild admin spy";
+        return "/clan admin spy";
     }
 
     @Override

@@ -42,7 +42,7 @@ public class GuildEditMenu implements Listener {
         ItemStack it = new ItemStack(m, count);
         ItemMeta im = it.getItemMeta();
 
-        im.setDisplayName("§6§l"+name);
+        im.setDisplayName("§b§l"+name);
 
         im.setLore(Arrays.stream(lore)
                 .map(a -> Utils.c("&7"+a))
@@ -54,18 +54,18 @@ public class GuildEditMenu implements Listener {
 
     private static void reorganizeItems(Inventory inv, Player player, Guilds g) {
         inv.setItem(12, simpleButton(
-                Material.MAGMA_CREAM, "Tag", "• Define a tag da sua guilda",
+                Material.MAGMA_CREAM, "Tag", "• Define a tag do seu clã",
                 " ",
-                "&6Tag: &e"+( g.getTag() == null || g.getTag().isEmpty() ? "Sem Tag" : g.getTag()),
+                "&bTag: &3"+( g.getTag() == null || g.getTag().isEmpty() ? "Sem Tag" : g.getTag()),
                 " ",
                 "&e➳ Clique esquerdo - Alterar tag")
         );
 
         inv.setItem(14, simpleButton(
                 Material.BOOK, "Descrição", "• Altere a descrição",
-                " da sua guilda",
+                " do seu clã",
                 " ",
-                "&6Descrição: &e"+( g.getDescription() == null || g.getDescription().isEmpty() ? "Sem descrição" : g.getDescription()),
+                "&bDescrição: &3"+( g.getDescription() == null || g.getDescription().isEmpty() ? "Sem descrição" : g.getDescription()),
                 " ",
                 "&e➳ Clique esquerdo - Alterar descrição",
                 "&e➳ Clique direito - Remover descrição")
@@ -73,7 +73,7 @@ public class GuildEditMenu implements Listener {
     }
 
     public static void openMainMenu(Player player) {
-        Inventory inv = Bukkit.createInventory(null, 27, "Configuração da Guilda.");
+        Inventory inv = Bukkit.createInventory(null, 27, "Configuração do clã.");
 
         inventories.put(player, inv);
 
@@ -131,7 +131,7 @@ public class GuildEditMenu implements Listener {
                             }
                             if (GuildHandler.doesGuildTagExist(response, g.getId())) {
                                 p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO,1, 1);
-                                p.sendMessage(Utils.c("&c❌ Ops! Já existe uma guilda com essa Tag. Tente outra tag!"));
+                                p.sendMessage(Utils.c("&c❌ Ops! Já existe um clã com essa Tag. Tente outra tag!"));
                                 reopenInventory(p);
                                 return;
                             }

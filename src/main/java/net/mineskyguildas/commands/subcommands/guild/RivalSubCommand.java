@@ -32,7 +32,7 @@ public class RivalSubCommand extends SubCommand {
 
     @Override
     public String getUsage() {
-        return "/guilda rival <adicionar/remover/list> <guilda>";
+        return "/clan rival <adicionar/remover/list> <clã>";
     }
 
     @Override
@@ -48,13 +48,13 @@ public class RivalSubCommand extends SubCommand {
     @Override
     public void perform(Player player, String[] args) {
         if (args.length < 2) {
-            sendError(player, "&c❗ Uso correto: &f/guilda rival <adicionar/remover> <guilda>");
+            sendError(player, "&c❗ Uso correto: &f/clan rival <adicionar/remover> <clã>");
             return;
         }
 
         Guilds guild = GuildHandler.getGuildByPlayer(player.getUniqueId());
         if (guild == null) {
-            sendError(player, "&c🚫 Você não faz parte de nenhuma guilda.");
+            sendError(player, "&c🚫 Você não faz parte de nenhum clã.");
             return;
         }
 
@@ -68,67 +68,67 @@ public class RivalSubCommand extends SubCommand {
         switch (args[1].toLowerCase()) {
             case "adicionar", "add" -> {
                 if (args.length < 3) {
-                    sendError(player, "&c❗ Uso correto: &f/guilda rival adicionar <guilda>");
+                    sendError(player, "&c❗ Uso correto: &f/clan rival adicionar <clã>");
                     return;
                 }
 
                 Guilds guildaTarget = GuildHandler.getGuildByTag(args[2]);
                 if (guildaTarget == null) {
-                    sendError(player, "&c❌ Essa guilda não existe.");
+                    sendError(player, "&c❌ Esse clã não existe.");
                     return;
                 }
                 if (guildaTarget.getName().equalsIgnoreCase(guild.getName())) {
-                    sendError(player, "&4🤦 &CVocê não pode criar rivalidade com sua própria guilda.");
+                    sendError(player, "&4🤦 &CVocê não pode criar rivalidade com seu próprio clã.");
                     return;
                 }
 
                 if (guild.isAlly(guildaTarget)) {
-                    sendError(player, "&c⚠ A guilda &f" + guildaTarget.getName() + " &cé sua aliada. Remova a aliança antes de declarar rivalidade.");
+                    sendError(player, "&c⚠ O clã &f" + guildaTarget.getName() + " &cé sua aliada. Remova a aliança antes de declarar rivalidade.");
                     return;
                 }
 
                 if (guild.isRival(guildaTarget)) {
-                    sendError(player, "&4😠 &CSua guilda já é rival da &f" + guildaTarget.getName() + ".");
+                    sendError(player, "&4😠 &CSeu clã já é rival da &f" + guildaTarget.getName() + ".");
                     return;
                 }
 
                 GuildAddRivalEvent event = new GuildAddRivalEvent(guild, guildaTarget, player);
                 plugin.getServer().getPluginManager().callEvent(event);
                 if (event.isCancelled()) {
-                    player.sendMessage((event.CancelledMessage == null ? Utils.c("&c⚠ Ops! A entrada na guilda foi interrompida pela API.") : event.CancelledMessage));
+                    player.sendMessage((event.CancelledMessage == null ? Utils.c("&c⚠ Ops! A entrada no clã foi interrompida pela API.") : event.CancelledMessage));
                     player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1, 1);
                     return;
                 }
                 GuildHandler.addRival(guild, guildaTarget, player);
-                player.sendMessage(Utils.c("&4⚔ &cVocê declarou rivalidade com a guilda &f" + guildaTarget.getName() + "&c!"));
+                player.sendMessage(Utils.c("&4⚔ &cVocê declarou rivalidade com o clã &f" + guildaTarget.getName() + "&c!"));
             }
 
             case "remover", "remove" -> {
                 if (args.length < 3) {
-                    sendError(player, "&c❗ Uso correto: &f/guilda rival remover <guilda>");
+                    sendError(player, "&c❗ Uso correto: &f/clan rival remover <clã>");
                     return;
                 }
 
                 Guilds guildaTarget = GuildHandler.getGuildByTag(args[2]);
                 if (guildaTarget == null) {
-                    sendError(player, "&c❌ Essa guilda não existe.");
+                    sendError(player, "&c❌ Esse clã não existe.");
                     return;
                 }
                 GuildRequestHandler rivalHandler = plugin.getRequestManager().getHandler(GuildRequestType.RIVAL);
 
                 if (guildaTarget.getName().equalsIgnoreCase(guild.getName())) {
-                    sendError(player, "&4🤔 &CVocê não pode remover rivalidade com sua própria guilda.");
+                    sendError(player, "&4🤔 &CVocê não pode remover rivalidade com seu próprio clã.");
                     return;
                 }
 
                 if (!guild.isRival(guildaTarget)) {
-                    sendError(player, "&4📛 &cSua guilda não é rival da &f" + guildaTarget.getName() + ".");
+                    sendError(player, "&4📛 &cSeu clã não é rival da &f" + guildaTarget.getName() + ".");
                     return;
                 }
 
                 if (rivalHandler.hasRequest(guildaTarget) &&
                         rivalHandler.getRequestGuild(guildaTarget).getId().equals(guild.getId())) {
-                    sendError(player, "&4📨 &cO pedido de paz já foi enviado para essa guilda.");
+                    sendError(player, "&4📨 &cO pedido de paz já foi enviado para esse clã.");
                     return;
                 }
 
@@ -155,7 +155,7 @@ public class RivalSubCommand extends SubCommand {
                         .toList();
 
                 player.sendMessage(Utils.c("&8&m----------------------------------------"));
-                player.sendMessage(Utils.c("&c⚔ Rivais da guilda &f" + targetGuild.getName() + "&c:"));
+                player.sendMessage(Utils.c("&c⚔ Rivais do clã &f" + targetGuild.getName() + "&c:"));
                 player.sendMessage(Utils.c("&7Total: &f" + rivals.size()));
 
                 if (rivals.isEmpty()) {
