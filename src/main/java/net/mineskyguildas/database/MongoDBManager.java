@@ -41,6 +41,22 @@ public class MongoDBManager {
         return guildas;
     }
 
+    public MongoCollection<Document> getGuildWar() {
+        return db.getCollection("guild_wars");
+    }
+
+    public MongoCollection<Document> getRivalryTimestamps() {
+        return db.getCollection("rivalry_timestamps");
+    }
+
+    public MongoCollection<Document> getGuildTraitors() {
+        return db.getCollection("guild_traitors");
+    }
+
+    public MongoCollection<Document> getGuildTraitorCooldowns() {
+        return db.getCollection("guild_traitor_cooldowns");
+    }
+
     public void close() {
         if (client != null) {
             client.close();

@@ -3,6 +3,7 @@ package net.mineskyguildas.commands.subcommands.guild;
 import net.mineskyguildas.MineSkyGuildas;
 import net.mineskyguildas.commands.subcommands.SubCommand;
 import net.mineskyguildas.data.Guilds;
+import net.mineskyguildas.enums.GuildRoles;
 import net.mineskyguildas.handlers.GuildHandler;
 import net.mineskyguildas.hooks.MineSkyVanishHook;
 import net.mineskyguildas.hooks.WorldGuardHook;
@@ -55,6 +56,11 @@ public class CoordsSubCommand extends SubCommand {
 
             if (guild == null) {
                 sendError(player, "&c❌ Você não faz parte de um clã.");
+                return;
+            }
+
+            if (guild.getRole(player.getUniqueId()) == GuildRoles.RECRUIT) {
+                player.sendMessage(Utils.c("&c❌ Você é um Recruta e possui o status de 'Não Confiável'. Você não tem permissão para visualizar as coordenadas do clã!"));
                 return;
             }
 

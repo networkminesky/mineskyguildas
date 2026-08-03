@@ -156,13 +156,16 @@ public class Utils {
             return;
         }
 
+        String formattedXp = new java.text.DecimalFormat("0.#").format(g.getXp());
+        String formattedMaxXp = new java.text.DecimalFormat("0.#").format(g.xpRequiredForNextLevel());
+
         GuildStatsManager.calculateGuildStats(g, (totalKills, totalDeaths, kdr) -> {
             List<String> lore = new ArrayList<>();
             lore.add("&7• Informações do clã.");
             lore.add(" ");
             lore.add("&bDescrição: &3" + (g.getDescription() == null ? "Sem descrição" : g.getDescription()));
             lore.add("&bLevel: &3" + g.getLevel());
-            lore.add("&bXP: &3" + g.getXp() + "/" + g.xpRequiredForNextLevel());
+            lore.add("&bXP: &3" + formattedXp + "/" + formattedMaxXp);
             lore.add("&bLíder: &3" + Bukkit.getOfflinePlayer(g.getLeader()).getName());
             lore.add("&bMembros: &3" + GuildHandler.getOnlineMembers(g));
             lore.add("&bKills totais: &3" + totalKills);

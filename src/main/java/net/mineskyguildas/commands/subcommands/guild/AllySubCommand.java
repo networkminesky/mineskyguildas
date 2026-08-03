@@ -104,6 +104,7 @@ public class AllySubCommand extends SubCommand {
 
                 GuildHandler.broadcastGuildMessage(guild, Utils.c("&3📨 &b" + player.getName() + " &3enviou um pedido de aliança para &f" + guildaTarget.getName() + "&3."));
                 allyHandler.sendRequest(guild, guildaTarget, player);
+                MineSkyGuildas.l.info("[Clãs] " + player.getName() + "membro do clã " + guild.getName()+ " enviou um pedido de aliança para o clã " + guildaTarget.getName());
             }
             case "remover", "remove" -> {
                 if (args.length < 3) {
@@ -135,6 +136,7 @@ public class AllySubCommand extends SubCommand {
                     return;
                 }
                 GuildHandler.removeAlly(guild, guildaTarget, player);
+                MineSkyGuildas.l.info("[Clãs] " + player.getName() + " membro do clã " + guild.getName() + " rompeu a aliança entre " + guildaTarget.getName());
             }
             case "listar", "list", "lista" -> {
                 Guilds targetGuild = guild;

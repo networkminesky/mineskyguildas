@@ -28,6 +28,9 @@ public class GuildHandler {
 
     private void loadGuildas() {
         for (Document doc : coll.find()) {
+
+            if (doc.getString("_id").startsWith("cooldown_")) continue;
+
             Document meta = (Document) doc.get("meta");
             String name = meta != null ? meta.getString("name") : null;
             String tag = meta != null ? meta.getString("tag") : null;
@@ -50,7 +53,8 @@ public class GuildHandler {
                 UUID playerUUID = UUID.fromString(m.getString("uuid"));
                 GuildRoles role = GuildRoles.valueOf(m.getString("role"));
                 int kills = m.containsKey("kills") ? m.getInteger("kills") : 0;
-                g.addMember(playerUUID, role, kills);
+                long joinedAt = m.containsKey("joinedAt") ? m.getLong("joinedAt") : System.currentTimeMillis();
+                g.addMember(playerUUID, role, kills, joinedAt);
             });
             assert meta != null;
             g.setBanner(meta.containsKey("banner-item") ? Utils.decodeItem(meta.getString("banner-item")) : null);
@@ -80,7 +84,8 @@ public class GuildHandler {
                     MemberData data = e.getValue();
                     return new Document("uuid", uuid.toString())
                             .append("role", data.getRole().name())
-                            .append("kills", data.getKills());
+                            .append("kills", data.getKills())
+                            .append("joinedAt", data.getJoinedAt());
                 })
                 .toList();
 
@@ -137,16 +142,23 @@ public class GuildHandler {
     }
 
     public static boolean doesGuildNameExist(String name) {
+        if (MineSkyGuildas.getInstance().getWarHandler().isNameUnderCooldown(name)) {
+            return true;
+        }
         return guildas.entrySet().stream()
-                        .map(id -> id.getValue().getName())
-                        .filter(Objects::nonNull)
-                        .anyMatch(name::equalsIgnoreCase);
+                .map(id -> id.getValue().getName())
+                .filter(Objects::nonNull)
+                .anyMatch(name::equalsIgnoreCase);
     }
 
     public static boolean doesGuildTagExist(String tag) {
         if (!Utils.isValidTag(tag) || coll == null) {
             return false;
         }
+        if (MineSkyGuildas.getInstance().getWarHandler().isTagUnderCooldown(tag)) {
+            return true;
+        }
+
         tag = Utils.getTag(tag);
         String finalTag = tag;
         return guildas.entrySet().stream()
@@ -252,6 +264,7 @@ public class GuildHandler {
         rival.addRival(guild.getId());
         broadcastGuildMessage(rival, Utils.c("&4⚔ &cO clã &f" + guild.getName() + " &cdeclarou rivalidade com a seu clã!"));
         broadcastGuildMessage(guild, Utils.c("&c😡 &4" + player.getName() + " &cdeclarou rivalidade com o clã &f" + rival.getName() + "&c."));
+        MineSkyGuildas.getInstance().getWarHandler().recordRivalry(guild.getId(), rival.getId());
         saveGuildas();
     }
 
@@ -260,11 +273,12 @@ public class GuildHandler {
         rival.removeRival(guild);
         broadcastGuildMessage(guild, Utils.c("&2✌ &aO clã &f" + rival.getName() + " &aremoveu a rivalidade com a seu clã."));
         broadcastGuildMessage(rival, Utils.c("&a✅ &2" + player.getName() + " &aremoveu a rivalidade com o clã &f" + guild.getName() + "&a."));
+        MineSkyGuildas.getInstance().getWarHandler().removeRivalryRecord(guild.getId(), rival.getId());
         saveGuildas();
     }
 
     public static void addMember(Player player, Guilds guild) {
-        guild.addMember(player.getUniqueId(), GuildRoles.RECRUIT, 0);
+        guild.addMember(player.getUniqueId(), GuildRoles.RECRUIT, 0, System.currentTimeMillis());
         saveGuildas();
     }
 
@@ -282,13 +296,13 @@ public class GuildHandler {
         int kills = guild.getKills(player.getUniqueId());
         GuildRoles currentRole = guild.getRole(player.getUniqueId());
 
-        if (GuildRoles.isLeadership(currentRole)) return;
+        if (GuildRoles.isLeadershipAndRecruiter(currentRole)) return;
         if (kills >= 120 && currentRole != GuildRoles.LOYAL) {
             setRole(player, guild, GuildRoles.LOYAL);
-            broadcastGuildMessage(guild, player.getName() + " Promovido para Leal");
+            broadcastGuildMessage(guild, "&3➕ &b" + player.getName() + " &3atingiu &b120 KILLS &3e foi promovido a &bLEAL");
         } else if (kills >= 40 && currentRole != GuildRoles.MEMBER) {
             setRole(player, guild, GuildRoles.MEMBER);
-            broadcastGuildMessage(guild, player.getName() + " Promovido para Membro");
+            broadcastGuildMessage(guild, "&3➕ &b" + player.getName() + " &3atingiu &b40 KILLS &3e foi promovido a &bMEMBRO");
         }
     }
 
@@ -375,13 +389,22 @@ public class GuildHandler {
     }
 
     public static void broadcastGuildChat(Player player, Guilds guild, String message, boolean allies) {
-        Set<UUID> recipients = new HashSet<>(guild.getMembers().keySet());
+        Set<UUID> recipients = new HashSet<>();
 
         if (allies) {
+            guild.getMembers().keySet().stream()
+                    .filter(uuid -> guild.getRole(uuid) != GuildRoles.RECRUIT)
+                    .forEach(recipients::add);
+
             guild.getAllies().stream()
                     .map(guildas::get)
                     .filter(Objects::nonNull)
-                    .forEach(ally -> recipients.addAll(ally.getMembers().keySet()));
+                    .forEach(ally -> ally.getMembers().keySet().stream()
+                            .filter(uuid -> ally.getRole(uuid) != GuildRoles.RECRUIT)
+                            .forEach(recipients::add)
+                    );
+        } else {
+            recipients.addAll(guild.getMembers().keySet());
         }
 
         String name = player.getCustomName() != null ? player.getCustomName() : player.getName();
@@ -406,9 +429,15 @@ public class GuildHandler {
         Bukkit.getOnlinePlayers().stream()
                 .filter(p -> !recipients.contains(p.getUniqueId()))
                 .filter(p -> p.hasPermission("mineskyguildas.spy"))
-                .forEach(p -> p.getScheduler().run(MineSkyGuildas.getInstance(), task -> {
-                    p.sendMessage(spy);
-                }, null));
+                .forEach(p -> {
+                    MineSkyGuildas.getInstance().getPlayerData().getSpy(p.getUniqueId(), spyAtivado -> {
+                        if (spyAtivado) {
+                            p.getScheduler().run(MineSkyGuildas.getInstance(), task -> {
+                                p.sendMessage(spy);
+                            }, null);
+                        }
+                    });
+                });
     }
 
     public static void broadcastLeaderChat(Player sender, Guilds guilds, String message) {
@@ -433,9 +462,15 @@ public class GuildHandler {
         Bukkit.getOnlinePlayers().stream()
                 .filter(p -> !GuildRoles.isLeadership(guilds.getRole(p.getUniqueId())))
                 .filter(p -> p.hasPermission("mineskyguildas.spy"))
-                .forEach(p -> p.getScheduler().run(MineSkyGuildas.getInstance(), task -> {
-                    p.sendMessage(spy);
-                }, null));
+                .forEach(p -> {
+                    MineSkyGuildas.getInstance().getPlayerData().getSpy(p.getUniqueId(), spyAtivado -> {
+                        if (spyAtivado) {
+                            p.getScheduler().run(MineSkyGuildas.getInstance(), task -> {
+                                p.sendMessage(spy);
+                            }, null);
+                        }
+                    });
+                });
     }
 
 
@@ -469,6 +504,9 @@ public class GuildHandler {
         }
 
         Utils.removeGuildsAlliesAndRivalsOnDelete(getGuildByID(id));
+
+        MineSkyGuildas.getInstance().getWarHandler().removeAllRivalriesForGuild(id);
+
         guildas.remove(id);
 
         Bukkit.getAsyncScheduler().runNow(MineSkyGuildas.getInstance(), task -> {

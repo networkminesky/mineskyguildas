@@ -7,6 +7,8 @@ import net.mineskyguildas.data.Guilds;
 import net.mineskyguildas.enums.GuildRoles;
 import net.mineskyguildas.handlers.GuildHandler;
 import net.mineskyguildas.utils.Utils;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
@@ -66,7 +68,25 @@ public class LeaveSubCommand extends SubCommand {
             }
             GuildHandler.broadcastGuildMessage(guild, "&c⛔ &4" + player.getName() + " &csaiu do clã.");
             GuildHandler.removeMember(player, guild);
+            MineSkyGuildas.l.info("[Clãs] " + player.getName() + " saiu do clã " + guild.getName());
             player.sendMessage(Utils.c("&a✅ Você saiu do clã."));
+            if (MineSkyGuildas.getInstance().getWarHandler().isGuildInActiveWar(guild.getId())) {
+                MineSkyGuildas.getInstance().getTraitorHandler().addTraitor(player.getUniqueId(), guild.getName());
+
+                final Location location = player.getLocation();
+                location.getWorld().strikeLightningEffect(location);
+
+                Bukkit.broadcastMessage(" ");
+                Bukkit.broadcastMessage(Utils.c("&4&lNOVO TRAIDOR NO SERVIDOR!"));
+                Bukkit.broadcastMessage(Utils.c("&f" + player.getName() + " &cabandonou o clã &f"+guild.getName()+ " &cem plena guerra e tornou-se um TRAIDOR GLOBAL!"));
+                Bukkit.broadcastMessage(" ");
+
+                Bukkit.getOnlinePlayers().forEach(p -> {
+                    p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_AMBIENT, 1.0f, 1.0f);
+                });
+
+                player.sendMessage(Utils.c("&cVocê abandonou o clã em combate. Agora você é um traidor e sua cabeça vale muito XP!"));
+            }
         });
     }
 }

@@ -48,7 +48,11 @@ public class GuildCommand implements CommandExecutor {
                 new PromoteAdminSubCommand(),
                 new ReloadSubCommand(),
                 new SpySubCommand(),
-                new isconnectedSubCommand()
+                new isconnectedSubCommand(),
+                new GuerraSubCommand(),
+                new TraitorSubCommand(),
+                new TraitorsSubCommand(),
+                new DadosAdminSubCommand()
         ).forEach(this::register);
     }
 

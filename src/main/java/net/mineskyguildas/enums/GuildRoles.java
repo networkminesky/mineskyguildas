@@ -35,17 +35,14 @@ public enum GuildRoles {
     }
 
     /**
-     * Verifica se o executor pode promover o alvo para o cargo desejado
+     * Verifica se o executor pode promover o player para o cargo desejado
      */
     public static boolean canPromoteTo(GuildRoles executorRole, GuildRoles targetRole, GuildRoles desiredRole) {
-        // O cargo desejado deve ser superior ao cargo atual do alvo
         if (desiredRole.ordinal() >= targetRole.ordinal()) return false;
-        // O cargo desejado não pode ser igual ou superior ao cargo do executor
         return desiredRole.ordinal() > executorRole.ordinal();
     }
 
     public static boolean canPermission(GuildRoles executorRole, GuildRoles targetRole) {
-        // O executor só pode atuar em cargos **inferiores ao seu**
         return executorRole.ordinal() < targetRole.ordinal();
     }
 

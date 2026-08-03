@@ -21,6 +21,35 @@ public class PlayerDataManager {
         void onQueryDone(boolean value);
     }
 
+    public void setKills(UUID uuid, int kills) {
+        PlayerDatabase.setPlayerData(uuid.toString(),
+                new UpdatedData("kills", kills),
+                new SetOneCallback() {
+                    @Override
+                    public void onSetDone() {}
+
+                    @Override
+                    public void onSetError(ErrorType errorType) {}
+                });
+    }
+
+    public void setDeaths(UUID uuid, int deaths) {
+        PlayerDatabase.setPlayerData(uuid.toString(),
+                new UpdatedData("deaths", deaths),
+                new SetOneCallback() {
+                    @Override
+                    public void onSetDone() {}
+
+                    @Override
+                    public void onSetError(ErrorType errorType) {}
+                });
+    }
+
+    public void resetPlayerStats(UUID uuid) {
+        setKills(uuid, 0);
+        setDeaths(uuid, 0);
+    }
+
     public void setSpy(UUID uuid, boolean enabled) {
         PlayerDatabase.getPlayerSpecificDataAsync(uuid.toString(), ValueType.BOOLEAN, "spy", new FindValueCallback() {
             @Override
@@ -173,7 +202,7 @@ public class PlayerDataManager {
                     callback.onQueryDone(true);
                     return;
                 }
-                boolean spy = document.getBoolean("spy", true);
+                boolean spy = document.getBoolean("spy", false);
                 callback.onQueryDone(spy);
             }
         });

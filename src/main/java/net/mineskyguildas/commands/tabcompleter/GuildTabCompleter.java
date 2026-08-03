@@ -16,7 +16,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class GuildTabCompleter implements TabCompleter {
-    private final List<String> subCommands = Arrays.asList("criar", "editar", "acabar", "sair", "expulsar", "promover", "rebaixar", "fogo-amigo", "base", "banco", "convidar", "aceitar", "rejeitar", "estandarte", "aliado", "rival", "anunciar", "mural", "ajuda", "lista", "membros", "coordenadas", "reagrupar");
+    private final List<String> subCommands = Arrays.asList(
+            "criar", "editar", "acabar", "sair", "expulsar", "promover", "rebaixar",
+            "fogo-amigo", "base", "banco", "convidar", "aceitar", "rejeitar", "estandarte",
+            "aliado", "rival", "anunciar", "mural", "ajuda", "lista", "membros",
+            "coordenadas", "reagrupar",
+            "guerra", "traidor", "traidores", "lista-negra"
+    );
     private final List<String> AdminsubCommands = Arrays.asList("admin");
 
     @Override
@@ -28,8 +34,11 @@ public class GuildTabCompleter implements TabCompleter {
         List<String> completions = new ArrayList<>();
 
         if (args.length == 1) {
-            if (s.hasPermission("mineskyguildas.admin") || s.hasPermission("mineskyguildas.reload") || s.hasPermission("mineskyguildas.spy")) completions = getMatches(args[0], subCommands, AdminsubCommands);
-            else completions = getMatches(args[0], subCommands);
+            if (s.hasPermission("mineskyguildas.admin") || s.hasPermission("mineskyguildas.reload") || s.hasPermission("mineskyguildas.spy")) {
+                completions = getMatches(args[0], subCommands, AdminsubCommands);
+            } else {
+                completions = getMatches(args[0], subCommands);
+            }
         } else if (args.length == 2) {
             if (args[0].equalsIgnoreCase("membros")) {
                 if (s instanceof Player player) {
@@ -50,6 +59,24 @@ public class GuildTabCompleter implements TabCompleter {
                 if (s instanceof Player player) {
                     completions = getMatches(args[1], Utils.getGuildMembersNamePerPlayer(player));
                 }
+            } else if (args[0].equalsIgnoreCase("guerra") || args[0].equalsIgnoreCase("war")) {
+                List<String> suggestions = new ArrayList<>(Arrays.asList("aceitar", "recusar"));
+                if (s instanceof Player player) {
+                    net.mineskyguildas.data.Guilds myGuild = net.mineskyguildas.handlers.GuildHandler.getGuildByPlayer(player);
+                    if (myGuild != null) {
+                        for (String rivalId : myGuild.getRivals()) {
+                            net.mineskyguildas.data.Guilds rival = net.mineskyguildas.handlers.GuildHandler.getGuildByID(rivalId);
+                            if (rival != null) {
+                                suggestions.add(Utils.getTag(rival.getTag()));
+                            }
+                        }
+                    }
+                }
+                completions = getMatches(args[1], suggestions);
+            } else if (args[0].equalsIgnoreCase("traidor")) {
+                if (s instanceof Player player) {
+                    completions = getMatches(args[1], Utils.getGuildMembersNamePerPlayer(player));
+                }
             } else if (args[0].equalsIgnoreCase("admin") && s.hasPermission("mineskyguildas.admin")) {
                 completions = getMatches(args[1], Arrays.asList("banco-admin", "promover-admin", "rebaixar-admin", "forçar-entrada", "resetar-kdr", "dados", "fogo-amigo-global", "spy", "reload", "reconnect"));
             }
@@ -60,9 +87,13 @@ public class GuildTabCompleter implements TabCompleter {
                     completions = getMatches(args[2], Utils.getGuildsTags(player));
                 }
             } else if (args[0].equalsIgnoreCase("promover")) {
-               completions = getMatches(args[2], Arrays.asList("Sub-líder", "Capitão", "Recrutador", "Leal", "Membro"));
+                completions = getMatches(args[2], Arrays.asList("Sub-líder", "Capitão", "Recrutador", "Leal", "Membro"));
             } else if (args[0].equalsIgnoreCase("banco")) {
                 completions = getMatches(args[2], Arrays.asList("<quantidade>"));
+            } else if (args[0].equalsIgnoreCase("guerra") || args[0].equalsIgnoreCase("war")) {
+                if (args[1].equalsIgnoreCase("aceitar") || args[1].equalsIgnoreCase("recusar")) {
+                    completions = getMatches(args[2], Utils.getGuildsTags());
+                }
             } else if (args[0].equalsIgnoreCase("admin")) {
                 if (args[1].equalsIgnoreCase("banco-admin")) {
                     completions = getMatches(args[2], Arrays.asList("setar", "tirar", "resetar", "dar", "saldo"));
@@ -70,18 +101,20 @@ public class GuildTabCompleter implements TabCompleter {
                     completions = getMatches(args[2], Arrays.asList("ativar", "desativar"));
                 } else if (args[1].equalsIgnoreCase("promover-admin") || args[1].equalsIgnoreCase("rebaixar-admin")) {
                     completions = getMatches(args[2], Utils.getOnlinePlayerNames());
+                } else if (args[1].equalsIgnoreCase("dados")) {
+                    completions = getMatches(args[2], Arrays.asList("editar", "deletar", "resetar"));
                 } else if (args[1].equalsIgnoreCase("forçar-entrada")) {
                     completions = getMatches(args[2], Utils.getGuildsTags());
                 }
             }
         } else if (args.length == 4) {
             if (args[0].equalsIgnoreCase("admin")) {
-                if (args[1].equalsIgnoreCase("banco-admin")) {
+                if (args[1].equalsIgnoreCase("dados")) {
+                    completions = getMatches(args[3], Arrays.asList("jogadores", "guildas"));
+                } else if (args[1].equalsIgnoreCase("banco-admin")) {
                     completions = getMatches(args[3], Utils.getGuildsTags());
                 } else if (args[1].equalsIgnoreCase("forçar-entrada")) {
                     completions = getMatches(args[3], Utils.getOnlinePlayerNames());
-                } else if (args[1].equalsIgnoreCase("dados")) {
-                    completions = getMatches(args[3], Arrays.asList("editar", "deletar", "resetar"));
                 } else if (args[1].equalsIgnoreCase("promover-admin")) {
                     completions = getMatches(args[3], Arrays.asList("Sub-líder", "Capitão", "Recrutador", "Leal", "Membro"));
                 }
@@ -89,7 +122,12 @@ public class GuildTabCompleter implements TabCompleter {
         } else if (args.length == 5) {
             if (args[0].equalsIgnoreCase("admin")) {
                 if (args[1].equalsIgnoreCase("dados")) {
-                    completions = getMatches(args[4], Arrays.asList("jogadores", "guildas"));
+                    if (args[3].equalsIgnoreCase("guildas")) {
+                        completions = getMatches(args[4], Stream.concat(Utils.getGuildsTags().stream(), Stream.of("todos"))
+                                .collect(Collectors.toList()));
+                    } else if (args[3].equalsIgnoreCase("jogadores")) {
+                        completions = getMatches(args[4], Utils.getOnlinePlayerNames());
+                    }
                 } else if (args[1].equalsIgnoreCase("banco-admin")) {
                     completions = getMatches(args[4], Arrays.asList("<quantidade>"));
                 }
@@ -97,25 +135,26 @@ public class GuildTabCompleter implements TabCompleter {
         } else if (args.length == 6) {
             if (args[0].equalsIgnoreCase("admin")) {
                 if (args[1].equalsIgnoreCase("dados")) {
-                    if (args[4].equalsIgnoreCase("guildas")) {
-                        completions = getMatches(args[5], Stream.concat(Utils.getGuildsTags().stream(), Stream.of("todos"))
-                                .collect(Collectors.toList()));
-                    } else if (args[4].equalsIgnoreCase("jogadores")) {
-                        completions =  getMatches(args[5], Utils.getOnlinePlayerNames());
-                    }
-                }
-            }
-        } else if (args.length == 7) {
-            if (args[0].equalsIgnoreCase("admin")) {
-                if (args[1].equalsIgnoreCase("dados")) {
-                    if (args[3].equalsIgnoreCase("editar")) {
-                        if (args[4].equalsIgnoreCase("jogadores")) {
-                            completions =  getMatches(args[5], Arrays.asList("kills", "deaths"));
+                    if (args[2].equalsIgnoreCase("editar")) {
+                        if (args[3].equalsIgnoreCase("jogadores")) {
+                            completions = getMatches(args[5], Arrays.asList("kills", "role"));
+                        } else if (args[3].equalsIgnoreCase("guildas")) {
+                            completions = getMatches(args[5], Arrays.asList("level", "xp", "balance", "mudar-líder"));
                         }
                     }
                 }
             }
+        } else if (args.length == 7) {
+        if (args[0].equalsIgnoreCase("admin")) {
+            if (args[1].equalsIgnoreCase("dados")) {
+                if (args[2].equalsIgnoreCase("editar")) {
+                    if (args[3].equalsIgnoreCase("guildas") && args[5].equalsIgnoreCase("mudar-lider")) {
+                        completions = getMatches(args[6], Utils.getOnlinePlayerNames());
+                    }
+                }
+            }
         }
+    }
 
         return completions;
     }

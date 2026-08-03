@@ -84,6 +84,7 @@ public class AcceptSubCommand extends SubCommand {
 
             player.sendMessage(Utils.c("&2🤝 &aVocê aceitou o pedido de aliança do clã &2" + allyGuild.getName() + "&a!"));
             GuildHandler.addAlly(allyGuild, ownGuild, player);
+            MineSkyGuildas.l.info("[Clãs] " + player.getName() + " membro do clã " + ownGuild.getName() + " aceitou o pedido de aliança do clã " + allyGuild.getName());
             allyHandler.removeRequest(ownGuild);
             player.playSound(player, Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);
             return;
@@ -101,6 +102,7 @@ public class AcceptSubCommand extends SubCommand {
 
             player.sendMessage(Utils.c("&2🕊 &aVocê aceitou o pedido de paz do clã &2" + rivalGuild.getName() + "&a!"));
             GuildHandler.removeRival(rivalGuild, ownGuild, player);
+            MineSkyGuildas.l.info("[Clãs] " + player.getName() + " membro do clã " + ownGuild.getName() + " aceitou o pedido de paz do clã " + rivalGuild.getName());
             rivalHandler.removeRequest(ownGuild);
             player.playSound(player, Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);
             return;
@@ -109,6 +111,11 @@ public class AcceptSubCommand extends SubCommand {
         if (hasInvite) {
             if (GuildHandler.hasGuild(player)) {
                 sendError(player, "&4⚠ &CVocê já faz parte de um clã. Saia dela antes de aceitar outro convite.");
+                return;
+            }
+
+            if (MineSkyGuildas.getInstance().getTraitorHandler().isTraitor(playerId)) {
+                sendError(player, "&cVocê é considerado um Traidor Global e está impedido de ingressar em novos clãs!");
                 return;
             }
 
@@ -122,6 +129,7 @@ public class AcceptSubCommand extends SubCommand {
             }
 
             GuildHandler.addMember(player, guild);
+            MineSkyGuildas.l.info("[Clãs] " + player.getName() + " aceitou o convite do clã " + guild.getName());
             String msg = "&3🏰 &b" + player.getName() + " &3entrou no clã &b" + guild.getName() + "&3!";
             Bukkit.broadcastMessage(Utils.c(msg));
             GuildHandler.addNotice(guild, Utils.c(msg));

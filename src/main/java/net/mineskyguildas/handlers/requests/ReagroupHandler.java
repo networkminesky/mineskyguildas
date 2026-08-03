@@ -1,18 +1,20 @@
 package net.mineskyguildas.handlers.requests;
 
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
 import net.mineskyguildas.MineSkyGuildas;
 import net.mineskyguildas.config.Config;
 import net.mineskyguildas.data.Guilds;
+import net.mineskyguildas.enums.GuildRoles;
 import net.mineskyguildas.handlers.GuildHandler;
 import net.mineskyguildas.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.util.Map;
 import java.util.UUID;
@@ -50,6 +52,8 @@ public class ReagroupHandler {
             Player member = Bukkit.getPlayer(memberId);
             if (member == null || member.equals(requester)) continue;
 
+            if (guild.getRole(memberId) == GuildRoles.RECRUIT) continue;
+
             sendReagroupMessage(member, requester, guild);
             active.put(memberId, requester.getUniqueId());
 
@@ -75,36 +79,48 @@ public class ReagroupHandler {
         String guildName = guild.getName();
 
         member.getScheduler().run(plugin, scheduledTask -> {
-            member.sendMessage(Utils.c("&b\uD83D\uDDFA &3O líder do clã &b" + guildName + " &3deseja reagrupar todos os membros!"));
+            if (isBedrockPlayer(member)) {
+                member.sendMessage(LegacyComponentSerializer.legacySection().deserialize(
+                        Utils.c("&b\uD83D\uDDFA &3O líder do clã &b" + guildName + " &3deseja reagrupar todos os membros!\n&7Utilize para aceitar: &3/clan aceitar\n&7Utilize para recusar: &3/clan rejeitar")
+                ));
+                member.playSound(member.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
 
-            TextComponent accept = createOption(
-                    "&#6aa84f[✔ Ir até o líder]",
-                    "§aClique para se teleportar até " + requester.getName(),
-                    "/guild aceitar"
-            );
+                net.mineskyguildas.gui.BedrockReagroupMenu.openMenu(member, requester.getName());
+            }
+            else {
+                member.sendMessage(LegacyComponentSerializer.legacySection().deserialize(
+                        Utils.c("&b\uD83D\uDDFA &3O líder do clã &b" + guildName + " &3deseja reagrupar todos os membros!")
+                ));
 
-            TextComponent reject = createOption(
-                    "&#bf4c4c[❌ Recusar]",
-                    "§cClique para recusar o teleporte",
-                    "/guild rejeitar"
-            );
+                Component accept = createOption(
+                        "&#6aa84f[✔ Ir até o líder]",
+                        "&aClique para se teleportar até " + requester.getName(),
+                        "/guild aceitar"
+                );
 
-            TextComponent options = new TextComponent(Utils.c("&7Escolha uma opção: "));
-            options.addExtra(accept);
-            options.addExtra(new TextComponent(" "));
-            options.addExtra(reject);
+                Component reject = createOption(
+                        "&#bf4c4c[❌ Recusar]",
+                        "&cClique para recusar o teleporte",
+                        "/guild rejeitar"
+                );
 
-            member.spigot().sendMessage(options);
-            member.playSound(member.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+                Component options = LegacyComponentSerializer.legacySection().deserialize(Utils.c("&7Escolha uma opção: "))
+                        .append(accept)
+                        .append(Component.text(" "))
+                        .append(reject);
+
+                member.sendMessage(options);
+                member.playSound(member.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+            }
         }, null);
     }
 
-    private TextComponent createOption(String text, String hoverText, String command) {
-        TextComponent component = new TextComponent(Utils.c(text));
-        component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                new ComponentBuilder(Utils.c(hoverText)).create()));
-        component.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command));
-        return component;
+    private Component createOption(String text, String hoverText, String command) {
+        Component optionComponent = LegacyComponentSerializer.legacySection().deserialize(Utils.c(text));
+
+        return optionComponent
+                .hoverEvent(HoverEvent.showText(LegacyComponentSerializer.legacySection().deserialize(Utils.c(hoverText))))
+                .clickEvent(ClickEvent.runCommand(command));
     }
 
     public void accept(Player member) {
@@ -125,6 +141,7 @@ public class ReagroupHandler {
             if (success) {
                 member.sendMessage(Utils.c("&a✅ Você foi teleportado até &b" + requester.getName() + "&a!"));
                 requester.sendMessage(Utils.c("&a✨ " + member.getName() + " aceitou o reagrupar!"));
+                MineSkyGuildas.l.info("[Clãs] " + member.getName() + " aceitou o pedido de reagrupar de " + requester.getName());
             } else {
                 member.sendMessage(Utils.c("&c⚠ Falha ao realizar o teleporte."));
             }
@@ -142,9 +159,19 @@ public class ReagroupHandler {
         Player requester = Bukkit.getPlayer(requesterId);
 
         member.sendMessage(Utils.c("&c❌ Você recusou o pedido de reagrupar."));
+        MineSkyGuildas.l.info("[Clãs] " + member.getName() + " recusou o pedido de reagrupar de " + (requester != null ? requester.getName() : "PLAYER OFF"));
         if (requester != null) {
             requester.sendMessage(Utils.c("&c⚠ " + member.getName() + " recusou o reagrupar."));
         }
         removeRequest(member.getUniqueId());
+    }
+
+    private boolean isBedrockPlayer(Player player) {
+        if (Bukkit.getPluginManager().isPluginEnabled("floodgate")) {
+            try {
+                return org.geysermc.floodgate.api.FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId());
+            } catch (Throwable ignored) {}
+        }
+        return player.getName().startsWith(".") || player.getName().startsWith("*");
     }
 }

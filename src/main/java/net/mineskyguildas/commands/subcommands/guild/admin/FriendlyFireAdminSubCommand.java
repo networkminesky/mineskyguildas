@@ -1,5 +1,6 @@
 package net.mineskyguildas.commands.subcommands.guild.admin;
 
+import net.mineskyguildas.MineSkyGuildas;
 import net.mineskyguildas.commands.subcommands.SubCommand;
 import net.mineskyguildas.data.Guilds;
 import net.mineskyguildas.handlers.GuildHandler;
@@ -57,6 +58,7 @@ public class FriendlyFireAdminSubCommand extends SubCommand {
         }
 
         Bukkit.broadcastMessage(Utils.c("&b⚔ &3Todos os clãs tiveram o fogo-amigo habilitado&b!"));
+        MineSkyGuildas.l.info("[Clãs] " + player.getName() + " habilitou todos os fogo-amigos dos clãs");
         player.sendMessage("§b⚔ Você habilitou o fogo-amigo em todos os clãs!");
     }
 
@@ -66,6 +68,7 @@ public class FriendlyFireAdminSubCommand extends SubCommand {
         }
 
         Bukkit.broadcastMessage(Utils.c("&b⚔ &3Todos os clãs tiveram o fogo-amigo desabilitado&b!"));
+        MineSkyGuildas.l.info("[Clãs] " + player.getName() + " desabilitou todos os fogo-amigos dos clãs");
         player.sendMessage("§b⚔ Você desabilitou o fogo-amigo em todos os clãs!");
     }
 }

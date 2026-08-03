@@ -100,6 +100,7 @@ public class RivalSubCommand extends SubCommand {
                     return;
                 }
                 GuildHandler.addRival(guild, guildaTarget, player);
+                MineSkyGuildas.l.info("[Clãs] " + player.getName() + " membro do clã " + guild.getName() + " declarou rivalidade com o clã " + guildaTarget.getName());
                 player.sendMessage(Utils.c("&4⚔ &cVocê declarou rivalidade com o clã &f" + guildaTarget.getName() + "&c!"));
             }
 
@@ -134,6 +135,7 @@ public class RivalSubCommand extends SubCommand {
 
                 GuildHandler.broadcastGuildMessage(guild, Utils.c("&3📨 &b" + player.getName() + " &3enviou um pedido de paz para &f" + guildaTarget.getName() + "&3."));
                 rivalHandler.sendRequest(guild, guildaTarget, player);
+                MineSkyGuildas.l.info("[Clãs] " + player.getName() + " membro do clã " + guild.getName() + " enviou um pedido de paz para o clã " + guildaTarget.getName());
                 player.sendMessage(Utils.c("&a✔ Um pedido de paz para &f" + guildaTarget.getName() + " &afoi enviada com sucesso."));
             }
 

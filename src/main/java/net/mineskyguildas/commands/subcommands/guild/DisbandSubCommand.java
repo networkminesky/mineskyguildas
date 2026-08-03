@@ -66,6 +66,7 @@ public class DisbandSubCommand extends SubCommand {
                 return;
             }
             Bukkit.broadcastMessage(Utils.c("&4⛔ &cO clã &f" + guild.getName() + " &cfoi desbandada."));
+            MineSkyGuildas.l.info("[Clãs] " + player.getName() + " abandonou o clã " + guild.getName());
             GuildHandler.deleteGuild(guild.getId());
             player.sendMessage(Utils.c("&2✅ &aO clã foi desbandada com sucesso."));
         });

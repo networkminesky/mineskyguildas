@@ -1,5 +1,6 @@
 package net.mineskyguildas.commands.subcommands.guild;
 
+import net.mineskyguildas.MineSkyGuildas;
 import net.mineskyguildas.commands.subcommands.SubCommand;
 import net.mineskyguildas.data.Guilds;
 import net.mineskyguildas.enums.GuildRoles;
@@ -60,6 +61,7 @@ public class BannerSubCommand extends SubCommand {
         }
 
         GuildHandler.setBanner(item, guild);
+        MineSkyGuildas.l.info("[Clãs] " + player.getName() + " alterou o estandarte do clã " + guild.getName());
         player.sendMessage(Utils.c("&aEstandarte alterado! Seu clã está com nova identidade visual."));
         GuildHandler.broadcastGuildMessage(guild, "&3\uD83C\uDFF4 &b" + player.getName() + " &3atualizou o estandarte do clã.");
         player.playSound(player, Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);

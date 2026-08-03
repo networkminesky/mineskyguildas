@@ -38,7 +38,7 @@ public class GuildChatCommand implements CommandExecutor, TabCompleter {
         GuildHandler handler = plugin.getGuildHandler();
 
         if (args.length == 0) {
-            player.sendMessage(Utils.c("§c⚠️ Uso correto: §f/." + label + " <mensagem>"));
+            player.sendMessage(Utils.c("§c⚠ Uso correto: §f/" + label + " <mensagem>"));
             player.playSound(player, Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 1f);
             return true;
         }
@@ -52,6 +52,11 @@ public class GuildChatCommand implements CommandExecutor, TabCompleter {
 
         if (type == GuildChatType.LEADER && !GuildRoles.isLeadership(guild.getRole(player.getUniqueId()))) {
             player.sendMessage(Utils.c("&4⚠ &cVocê não pode utilizar esse chat."));
+            return true;
+        }
+
+        if (type == GuildChatType.ALLY && guild.getRole(player.getUniqueId()) == GuildRoles.RECRUIT) {
+            player.sendMessage(Utils.c("&4⚠ &cVocê é um RECRUTA e não pode utilizar esse chat."));
             return true;
         }
 

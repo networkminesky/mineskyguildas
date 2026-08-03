@@ -1,5 +1,6 @@
 package net.mineskyguildas.commands.subcommands.guild;
 
+import net.mineskyguildas.MineSkyGuildas;
 import net.mineskyguildas.commands.subcommands.SubCommand;
 import net.mineskyguildas.data.Guilds;
 import net.mineskyguildas.enums.GuildRoles;
@@ -99,7 +100,7 @@ public class DemoteSubCommand extends SubCommand {
         String newRoleName = GuildRoles.getLabelRole(newRole);
 
         GuildHandler.broadcastGuildMessage(guild, "&c➖ &4" + target.getName() + " &cfoi rebaixado a &4" + newRoleName + " &cpor &4" + player.getName() + "&c!");
-
+        MineSkyGuildas.l.info("[Clãs] " + player.getName() + " rebaixou o membro " + target.getName() + " do clã " + guild.getName() + " para o cargo " + newRoleName);
         if (target.isOnline() && target.getPlayer() != null) {
             target.getPlayer().sendMessage("§cVocê foi rebaixado a " + newRoleName + "!");
         }

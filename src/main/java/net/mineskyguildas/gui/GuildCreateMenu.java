@@ -172,6 +172,7 @@ public class GuildCreateMenu implements Listener {
                             if (!Utils.isValidTag(response)) {
                                 p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO,1, 1);
                                 p.sendMessage(Utils.c("&c⚠ A tag precisa ter até " + Config.GuildTagLimit + " caracteres. Tente uma curta!"));
+                                reopenInventory(p);
                                 return;
                             }
                             if (GuildHandler.doesGuildTagExist(response)) {
@@ -226,6 +227,7 @@ public class GuildCreateMenu implements Listener {
                         }
                         GuildHandler.createGuilda(ID, builder.getDisplayName(), builder.getTag(), builder.getLider());
                         Bukkit.broadcastMessage(Utils.c("&3\uD83C\uDFF4 &b" + builder.getLider().getName() + " &3fundou o clã &f" + builder.getDisplayName() + "&b!"));
+                        MineSkyGuildas.l.info("[Clãs] " + builder.getLider().getName() + " fundou o clã " + builder.getDisplayName() + " (" + Utils.getTag(builder.getTag()) + ")");
                         p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_YES,1, 1);
                         builderHashMap.remove(p);
                         p.closeInventory();

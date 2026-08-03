@@ -1,5 +1,6 @@
 package net.mineskyguildas.commands.subcommands.guild.admin;
 
+import net.mineskyguildas.MineSkyGuildas;
 import net.mineskyguildas.commands.subcommands.SubCommand;
 import net.mineskyguildas.data.Guilds;
 import net.mineskyguildas.enums.GuildRoles;
@@ -70,6 +71,7 @@ public class PromoteAdminSubCommand extends SubCommand {
         guild.getMemberData(targetUUID).setRole(newRole);
 
         String newRoleName = GuildRoles.getLabelRole(newRole);
+        MineSkyGuildas.l.info("[Clãs] " + player.getName() + " promoveu o " + target.getName() + " para o cargo " + newRoleName + " no clã " + guild.getName());
         String guildName = guild.getName();
 
         GuildHandler.broadcastGuildMessage(guild,

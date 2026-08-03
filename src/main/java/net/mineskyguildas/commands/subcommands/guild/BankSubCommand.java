@@ -1,5 +1,6 @@
 package net.mineskyguildas.commands.subcommands.guild;
 
+import net.mineskyguildas.MineSkyGuildas;
 import net.mineskyguildas.commands.subcommands.SubCommand;
 import net.mineskyguildas.data.Guilds;
 import net.mineskyguildas.enums.GuildRoles;
@@ -60,8 +61,14 @@ public class BankSubCommand extends SubCommand {
         int value = Integer.parseInt(args[2]);
 
         if(args[1].equalsIgnoreCase("depositar")) {
+            if (MineSkyGuildas.getInstance().getWarHandler().isGuildInActiveWar(guild.getId())) {
+                sendError(player, "&4⚠ &cSeu clã está em guerra e não pode depositar dinheiro nele.");
+                return;
+            }
+
             if (Vault.withdraw(player, value)) {
                 guild.deposit(value);
+                MineSkyGuildas.l.info("[Clãs] " + player.getName() + " depositou um valor de $" + value + " para o clã " + guild.getName());
                 GuildHandler.broadcastGuildMessage(guild, "&3\uD83D\uDCB0 &b" + player.getName() + " &3depositou a quantia de &b$" + value + "&3!");
                 player.sendMessage(Utils.c("&aVocê deu $" + value + " para a seu clã."));
             } else {
@@ -74,9 +81,17 @@ public class BankSubCommand extends SubCommand {
                 sendError(player, "&4⚠ &cApenas os &lLÍDERES&r &cdo clã pode sacar dinheiro do banco.");
                 return;
             }
+
+            if (MineSkyGuildas.getInstance().getWarHandler().isGuildInActiveWar(guild.getId())
+            || MineSkyGuildas.getInstance().getWarHandler().isGuildInWarOrPending(guild.getId())) {
+                sendError(player, "&4⚠ &cSeu clã está em guerra e não pode sacar o dinheiro dele.");
+                return;
+            }
+
             if (guild.withdraw(value)) {
                 if (Vault.deposit(player, value)) {
                     guild.withdraw(value);
+                    MineSkyGuildas.l.info("[Clãs] " + player.getName() + " sacou o valor de $" + value + " do clã " + guild.getName());
                     GuildHandler.broadcastGuildMessage(guild, "&3\uD83D\uDCB0 &b" + player.getName() + " &3sacou uma quantia de &b$" + value + "&3!");
                     player.sendMessage(Utils.c("&aVocê sacou $" + value + " da seu clã."));
                 } else {

@@ -67,10 +67,12 @@ public class SpySubCommand extends SubCommand {
     private void EnableSpy(Player player) {
         MineSkyGuildas.getInstance().getPlayerData().setSpy(player.getUniqueId(), true);
         player.sendMessage(Utils.c("&2✅ &aVocê ativou seu spy!"));
+        MineSkyGuildas.l.info("[Clãs] " + player.getName() + " ativou o socialspy dos clãs ");
     }
 
     private void DisableSpy(Player player) {
         MineSkyGuildas.getInstance().getPlayerData().setSpy(player.getUniqueId(), false);
         player.sendMessage(Utils.c("&4✅ &cVocê desativou seu spy!"));
+        MineSkyGuildas.l.info("[Clãs] " + player.getName() + " desativou o socialspy dos clãs ");
     }
 }

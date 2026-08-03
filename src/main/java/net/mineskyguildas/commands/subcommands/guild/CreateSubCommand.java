@@ -1,5 +1,6 @@
 package net.mineskyguildas.commands.subcommands.guild;
 
+import net.mineskyguildas.MineSkyGuildas;
 import net.mineskyguildas.builders.GuildBuilder;
 import net.mineskyguildas.commands.subcommands.SubCommand;
 import net.mineskyguildas.gui.GuildCreateMenu;
@@ -41,6 +42,10 @@ public class CreateSubCommand extends SubCommand {
         if (GuildHandler.hasGuild(player)) {
             sendError(player, "&c⚠ Você já está ligado a um clã. Rompa os laços antes de criar ou buscar nova aliança.");
             return;
+        }
+
+        if (MineSkyGuildas.getInstance().getTraitorHandler().isTraitor(player.getUniqueId())) {
+            sendError(player, "&4⚠ &cVocê é um TRAIDOR GLOBAL e não pode criar clãs");
         }
         GuildCreateMenu.openMainMenu(player, new GuildBuilder(player.getUniqueId()));
     }

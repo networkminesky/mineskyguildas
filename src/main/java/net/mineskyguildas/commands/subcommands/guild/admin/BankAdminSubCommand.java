@@ -1,5 +1,6 @@
 package net.mineskyguildas.commands.subcommands.guild.admin;
 
+import net.mineskyguildas.MineSkyGuildas;
 import net.mineskyguildas.commands.subcommands.SubCommand;
 import net.mineskyguildas.data.Guilds;
 import net.mineskyguildas.handlers.GuildHandler;
@@ -62,6 +63,7 @@ public class BankAdminSubCommand extends SubCommand {
 
             int value = Integer.parseInt(args[3]);
                 guild.deposit(value);
+                MineSkyGuildas.l.info("[Clãs] [ADMIN] " + player.getName() + " depositou o valor de $" + value + " para o clã " + guild.getName());
                 GuildHandler.broadcastGuildMessage(guild, "&b\uD83D\uDCB0 &3Foi depositado uma quantia de &b$" + value + "&3 para a seu clã!");
                 player.sendMessage(Utils.c("&aVocê deu $" + value + " para o clã " + guild.getName() + "!"));
             return;
@@ -78,6 +80,7 @@ public class BankAdminSubCommand extends SubCommand {
             int value = Integer.parseInt(args[3]);
             if (guild.withdraw(value)) {
                     guild.withdraw(value);
+                    MineSkyGuildas.l.info("[Clãs] [ADMIN] " + player.getName() + " reitou o valor de $ " + value + " do clã " + guild.getName());
                     GuildHandler.broadcastGuildMessage(guild, "&b\uD83D\uDCB0 &3Foi retirado uma quantia de &b$" + value + "&3 do seu clã!");
                     player.sendMessage(Utils.c("&aVocê tirou $" + value + " do clã " + guild.getName() + "!"));
             } else {
@@ -86,6 +89,7 @@ public class BankAdminSubCommand extends SubCommand {
             }
         } else if (args[1].equalsIgnoreCase("resetar")) {
             guild.setBalance(0);
+            MineSkyGuildas.l.info("[Clãs] [ADMIN] " + player.getName() + " restou o banco do clã " + guild.getName());
             GuildHandler.broadcastGuildMessage(guild, "&b\uD83D\uDCB0 &3O dinheiro do seu clã foi resetado!");
             player.sendMessage(Utils.c("&aVocê resetou o dinheiro do clã " + guild.getName() + "!"));
         } else if (args[1].equalsIgnoreCase("setar")) {
@@ -100,6 +104,7 @@ public class BankAdminSubCommand extends SubCommand {
 
             int value = Integer.parseInt(args[3]);
             guild.setBalance(value);
+            MineSkyGuildas.l.info("[Clãs] [ADMIN] " + player.getName() + " setou o banco do clã " + guild.getName() + " para $" + value);
             GuildHandler.broadcastGuildMessage(guild, "&b\uD83D\uDCB0 &3O dinheiro do seu clã foi setado em &b$" + value + "!");
             player.sendMessage(Utils.c("&aVocê setou o dinheiro do clã " + guild.getName() + " em $" + value + "!"));
         } else if (args[1].equalsIgnoreCase("saldo")) {

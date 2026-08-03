@@ -64,6 +64,11 @@ public class BaseSubCommand extends SubCommand implements Listener {
             return;
         }
 
+        if (g.getRole(player.getUniqueId()) == GuildRoles.RECRUIT) {
+            player.sendMessage(Utils.c("&c❌ Você é um Recruta e possui o status de 'Não Confiável'. Você não pode se teleportar ou gerenciar a base do clã!"));
+            return;
+        }
+
         if (args.length == 1) {
             TeleportPlayerBase(player, g);
             return;
@@ -77,6 +82,7 @@ public class BaseSubCommand extends SubCommand implements Listener {
                     return;
                 }
                 g.setBase(player.getLocation());
+                MineSkyGuildas.l.info("[Clãs] " + player.getName() + " definou a base do clã " + g.getName() + " para a localização " + player.getLocation());
                 GuildHandler.broadcastGuildMessage(g, "&3🏠 &b" + player.getName() + " &3definiu a base do clã!");
             }
         }

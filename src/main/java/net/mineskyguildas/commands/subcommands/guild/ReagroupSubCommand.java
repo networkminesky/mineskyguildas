@@ -80,6 +80,7 @@ public class ReagroupSubCommand extends SubCommand implements Listener {
             }
 
             GuildHandler.broadcastGuildMessage(guild, "&e📍 &6" + player.getName() + " &esolicitou um reagrupamento na base do clã!");
+            MineSkyGuildas.l.info("[Clãs] " + player.getName() + " solicitou um reagrupamento na base para os membros do clã " + guild.getName());
             for (UUID memberId : guild.getMembers().keySet()) {
                 Player member = Bukkit.getPlayer(memberId);
                 if (member != null && member.isOnline()) {
@@ -90,6 +91,7 @@ public class ReagroupSubCommand extends SubCommand implements Listener {
         }
 
         handler.sendReagroupRequest(player, guild);
+        MineSkyGuildas.l.info("[Clãs] " + player.getName() + " enviou um pedido de reagrupamento para os membros do clã " + guild.getName());
         player.sendMessage(Utils.c("&a📍 Pedido de reagrupamento enviado para todos os membros do clã!"));
     }
 
@@ -122,6 +124,7 @@ public class ReagroupSubCommand extends SubCommand implements Listener {
                 player.teleportAsync(target, PlayerTeleportEvent.TeleportCause.COMMAND).thenAccept(success -> {
                     if (success) {
                         player.sendMessage(Utils.c(successMessage));
+                        MineSkyGuildas.l.info("[Clãs] " + player.getName() + " foi teleportado para " + target.toString());
                         player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                     }
                 });
@@ -151,6 +154,7 @@ public class ReagroupSubCommand extends SubCommand implements Listener {
                 task.cancel();
             }
             player.sendMessage(Utils.c("&c❌ Teleporte cancelado pois você se moveu!"));
+            MineSkyGuildas.l.info("[Clãs] " + player.getName() + " se moveu e o teleporte foi cancelado.");
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1, 1);
         }
     }

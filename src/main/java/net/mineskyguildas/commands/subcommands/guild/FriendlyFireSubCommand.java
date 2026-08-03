@@ -1,5 +1,6 @@
 package net.mineskyguildas.commands.subcommands.guild;
 
+import net.mineskyguildas.MineSkyGuildas;
 import net.mineskyguildas.commands.subcommands.SubCommand;
 import net.mineskyguildas.data.Guilds;
 import net.mineskyguildas.enums.GuildRoles;
@@ -66,10 +67,12 @@ public class FriendlyFireSubCommand extends SubCommand {
     private void EnableFriendlyFire(Guilds g, Player player) {
         g.setFriendlyFire(true);
         GuildHandler.broadcastGuildMessage(g, "&3⚔ &b" + player.getName() + " &3habilitou o fogo-amigo.");
+        MineSkyGuildas.l.info("[Clãs] " + player.getName() + " habilitou o fogo-amigo do clã " + g.getName());
     }
 
     private void DisableFriendlyFire(Guilds g, Player player) {
         g.setFriendlyFire(false);
         GuildHandler.broadcastGuildMessage(g, "&3⚔ &b" + player.getName() + " &3desabilitou o fogo-amigo.");
+        MineSkyGuildas.l.info("[Clãs] " + player.getName() + " desabilitou o fogo-amigo do clã " + g.getName());
     }
 }

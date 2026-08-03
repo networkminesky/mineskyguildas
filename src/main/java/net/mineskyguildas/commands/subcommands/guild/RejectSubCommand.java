@@ -37,7 +37,7 @@ public class RejectSubCommand extends SubCommand {
 
     @Override
     public List<String> getAliases() {
-        return List.of();
+        return List.of("recusar");
     }
 
     @Override
@@ -78,6 +78,7 @@ public class RejectSubCommand extends SubCommand {
             player.sendMessage(Utils.c("&c✘ Você rejeitou o pedido de aliança do clã &4" + allyGuild.getName() + "&c."));
 
             allyHandler.removeRequest(ownGuild);
+            MineSkyGuildas.l.info("[Clãs] " + player.getName() + " membro do clã  " + ownGuild.getName() + " recusou o pedido de aliança do clã " + allyGuild.getName());
             player.playSound(player, Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 1f);
             return;
         }
@@ -90,6 +91,7 @@ public class RejectSubCommand extends SubCommand {
             player.sendMessage(Utils.c("&c✘ Você rejeitou o pedido de paz do clã &4" + g.getName() + "&c."));
 
             rivalHandler.removeRequest(ownGuild);
+            MineSkyGuildas.l.info("[Clãs] " + player.getName() + " membro do clã " + ownGuild.getName() + " recusou o pedido de paz enviado pelo clã" + g.getName());
             player.playSound(player, Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 1f);
             return;
         }
@@ -105,6 +107,7 @@ public class RejectSubCommand extends SubCommand {
             player.sendMessage(Utils.c("&c✘ Você rejeitou o convite do clã &4" + guild.getName() + "&c."));
 
             plugin.getInviteHandler().removeInvite(playerId);
+            MineSkyGuildas.l.info("[Clãs] " + player.getName() + " recusou o convite do clã " + guild.getName());
             player.playSound(player, Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 1f);
         }
     }

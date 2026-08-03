@@ -97,6 +97,11 @@ public class InviteSubCommand extends SubCommand {
             return;
         }
 
+        if (MineSkyGuildas.getInstance().getTraitorHandler().isTraitor(target.getUniqueId())) {
+            sendError(player, "&4⚠ &cVocê não pode convidar o jogador " + target.getName() + " pois ele é um Traidor Global!");
+            return;
+        }
+
         GuildInviteEvent event = new GuildInviteEvent(player, target, guild);
         plugin.getServer().getPluginManager().callEvent(event);
         if (event.isCancelled()) {
@@ -106,6 +111,7 @@ public class InviteSubCommand extends SubCommand {
             return;
         }
         plugin.getInviteHandler().sendInvite(target, guild);
+        MineSkyGuildas.l.info("[Clãs] " + player.getName() + " convidou " + target.getName() + " para o clã " + guild.getName());
         player.sendMessage(Utils.c("&4\uD83D\uDCB5 &cVocê gastou &4$" + Config.GuildInvitePrice + " &cpara convidar &4" + target.getName() + " &cpara o clã."));
         GuildHandler.broadcastGuildMessage(guild, "&3\uD83D\uDCE9 &b" + target.getName() + " &3foi convidado para o clã por &b" + player.getName() + "&3.");
         player.playSound(player, Sound.BLOCK_NOTE_BLOCK_BIT, 1f, 1f);

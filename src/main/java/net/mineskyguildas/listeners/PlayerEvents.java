@@ -14,11 +14,16 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.metadata.FixedMetadataValue;
 
 import java.util.List;
 import java.util.UUID;
@@ -42,6 +47,10 @@ public class PlayerEvents implements Listener {
 
             plugin.getRequestManager()
                     .getHandler(GuildRequestType.RIVAL)
+                    .handleLogin(player, guild);
+
+            plugin.getRequestManager()
+                    .getHandler(GuildRequestType.WAR)
                     .handleLogin(player, guild);
 
             List<Notice> notices = guild.getNoticeBoard();
@@ -93,29 +102,59 @@ public class PlayerEvents implements Listener {
         Guilds killedGuild = GuildHandler.getGuildByPlayer(killed.getUniqueId());
         Guilds killerGuild = GuildHandler.getGuildByPlayer(killer.getUniqueId());
 
-        if (killedGuild == null || killerGuild == null) return;
+        if (killerGuild != null) {
+            if (killerGuild.equals(killedGuild)) return;
 
-        if (killerGuild.equals(killedGuild) || killerGuild.isAlly(killedGuild)) return;
+            if (killedGuild != null) {
+                GuildHandler.addKill(killer, killerGuild);
+                GuildHandler.getMemberPromoteKills(killer, killerGuild);
+                if (killedGuild.isAlly(killerGuild)) {
+                    killerGuild.removeXP(20);
+                    killer.sendMessage(Utils.c("&cSeu clã perdeu 20 XP por abater um aliado!"));
+                    return;
+                }
+                if (killedGuild.isRival(killerGuild)) {
+                    killerGuild.addXP(10);
+                    killer.sendMessage(Utils.c("&a&lRIVAL ABATIDO! &7+15 XP para o seu clã."));
+
+                    killedGuild.removeXP(10);
+                    killed.sendMessage(Utils.c("&c&lRIVALIDADE! &7Seu clã perdeu 10 XP porque você morreu para um rival."));
+                }
+            }
+
+            GuildHandler.addXpToGuild(killer.getUniqueId(), 5);
+            killer.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+                    new TextComponent(Utils.c("&7☠ &4+&c5 XP &4para seu clã por derrotar um jogador&c!")));
+        }
 
         GuildHandler.addKill(killer, killerGuild);
         GuildHandler.getMemberPromoteKills(killer, killerGuild);
     }
 
     @EventHandler
+    public void onCreatureSpawn(CreatureSpawnEvent e) {
+        if (e.getSpawnReason() == CreatureSpawnEvent.SpawnReason.SPAWNER ||
+                e.getSpawnReason() == CreatureSpawnEvent.SpawnReason.SPAWNER_EGG) {
+            e.getEntity().setMetadata("spawned_mob", new FixedMetadataValue(plugin, true));
+        }
+    }
+
+    @EventHandler
     public void onEntityDeath(EntityDeathEvent e) {
         if (!(e.getEntity() instanceof Monster)) return;
+
+        if (e.getEntity().hasMetadata("spawned_mob")) return;
 
         Player killer = e.getEntity().getKiller();
         if (killer == null) return;
 
         Guilds guild = GuildHandler.getGuildByPlayer(killer.getUniqueId());
         if (guild != null) {
-            GuildHandler.addXpToGuild(killer.getUniqueId(), 0.5);
+            GuildHandler.addXpToGuild(killer.getUniqueId(), 1);
             killer.spigot().sendMessage(ChatMessageType.ACTION_BAR,
                     new TextComponent(Utils.c("&7☠ &4+&c1 XP &4para seu clã por derrotar um mob hostil&c!")));
         }
     }
-
 //    @EventHandler
 //    public void onMythicMobDeath(MythicMobDeathEvent e) {
 //        if (!(e.getKiller() instanceof Player player)) return;
@@ -133,5 +172,28 @@ public class PlayerEvents implements Listener {
 //                    new TextComponent(Utils.c("&7☠ &4+&c5 XP &4para sua guilda por derrotar um mob hostil&c!")));
 //        }
 //    }
+    @EventHandler
+    public void onBlockPlace(BlockPlaceEvent e) {
+        if (e.getBlock().getType().name().endsWith("ORE")) {
+            e.getBlock().setMetadata("block_placed", new FixedMetadataValue(plugin, true));
+        }
+    }
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent e) {
+        Player player = e.getPlayer();
+        Guilds guild = GuildHandler.getGuildByPlayer(player.getUniqueId());
+
+        if (guild == null) return;
+
+        if (e.getBlock().hasMetadata("block_placed")) {
+            return;
+        }
+
+        if (e.getBlock().getType().name().endsWith("ORE")) {
+            GuildHandler.addXpToGuild(player.getUniqueId(), 1);
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+                    new TextComponent(Utils.c("&7⛏ &6+&e1 XP &epara seu clã por minerar minérios&6!")));
+        }
+    }
 }
 

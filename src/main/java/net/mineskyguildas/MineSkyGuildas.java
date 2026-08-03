@@ -13,11 +13,15 @@ import net.mineskyguildas.enums.GuildChatType;
 import net.mineskyguildas.gui.*;
 import net.mineskyguildas.handlers.GuildHandler;
 import net.mineskyguildas.handlers.InviteHandler;
+import net.mineskyguildas.handlers.TraitorHandler;
+import net.mineskyguildas.handlers.WarHandler;
 import net.mineskyguildas.handlers.requests.GuildRequestManager;
 import net.mineskyguildas.handlers.requests.ReagroupHandler;
 import net.mineskyguildas.hooks.GuildasPlaceholder;
 import net.mineskyguildas.hooks.Vault;
 import net.mineskyguildas.listeners.PlayerEvents;
+import net.mineskyguildas.listeners.TraitorListener;
+import net.mineskyguildas.listeners.WarListener;
 import org.bson.Document;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -36,6 +40,8 @@ public final class MineSkyGuildas extends JavaPlugin {
     private GuildRequestManager requestManager;
     public GuildasPlaceholder guildasPlaceholder;
     private PlayerDataManager playerData;
+    private WarHandler warHandler;
+    private TraitorHandler traitorHandler;
 
     @Override
     public void onEnable() {
@@ -54,6 +60,8 @@ public final class MineSkyGuildas extends JavaPlugin {
         reagroupHandler = new ReagroupHandler(this);
         requestManager = new GuildRequestManager(this);
         playerData = new PlayerDataManager();
+        warHandler = new WarHandler(this);
+        traitorHandler = new TraitorHandler(this);
         registerEvents();
         registerCommands();
         registerHooks();
@@ -96,6 +104,11 @@ public final class MineSkyGuildas extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new GuildListMenu(this), this);
         getServer().getPluginManager().registerEvents(new PlayerListMenu(this), this);
         getServer().getPluginManager().registerEvents(new PlayerEvents(this), this);
+        getServer().getPluginManager().registerEvents(new WarListener(this, warHandler, traitorHandler), this);
+        getServer().getPluginManager().registerEvents(new TraitorListener(this, traitorHandler), this);
+        getServer().getPluginManager().registerEvents(new BedrockRequestMenu(this), this);
+        getServer().getPluginManager().registerEvents(new BedrockInviteMenu(this), this);
+        getServer().getPluginManager().registerEvents(new BedrockReagroupMenu(this), this);
     }
 
     private void registerCommands() {
@@ -149,6 +162,14 @@ public final class MineSkyGuildas extends JavaPlugin {
 
     public PlayerDataManager getPlayerData() {
         return playerData;
+    }
+
+    public WarHandler getWarHandler() {
+        return warHandler;
+    }
+
+    public TraitorHandler getTraitorHandler() {
+        return traitorHandler;
     }
 
     public static MineSkyGuildas getInstance() {

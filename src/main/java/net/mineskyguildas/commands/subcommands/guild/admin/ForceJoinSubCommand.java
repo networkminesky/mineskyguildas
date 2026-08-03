@@ -1,5 +1,6 @@
 package net.mineskyguildas.commands.subcommands.guild.admin;
 
+import net.mineskyguildas.MineSkyGuildas;
 import net.mineskyguildas.commands.subcommands.SubCommand;
 import net.mineskyguildas.data.Guilds;
 import net.mineskyguildas.enums.GuildRoles;
@@ -48,7 +49,7 @@ public class ForceJoinSubCommand extends SubCommand {
 
         String tag = args[1];
         String playerArg = args.length >= 3 ? args[2] : player.getName();
-        String cargoArg = args.length >= 4 ? args[3] : "RECRUTA"; // padrão agora é RECRUTA
+        String cargoArg = args.length >= 4 ? args[3] : "RECRUTA";
 
         Guilds guild = GuildHandler.getGuildByTag(tag);
         if (guild == null) {
@@ -83,7 +84,8 @@ public class ForceJoinSubCommand extends SubCommand {
         }
         String newRoleName = GuildRoles.getLabelRole(newRole);
 
-        guild.addMember(targetId, newRole, 0);
+        guild.addMember(targetId, newRole, 0, System.currentTimeMillis());
+        MineSkyGuildas.l.info("[Clãs] " + player.getName() + " forçou a entrada do " + target.getName() + " para o clã " + guild.getName());
         GuildHandler.saveGuildas();
         String msg = "&3🏰 &b" + target.getName() + " &3entrou no clã &b" + guild.getName() + "&3!";
         Bukkit.broadcastMessage(Utils.c(msg));

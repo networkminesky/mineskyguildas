@@ -127,6 +127,7 @@ public class GuildEditMenu implements Listener {
                             if (!Utils.isValidTag(response)) {
                                 p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO,1, 1);
                                 p.sendMessage(Utils.c("&c⚠ A tag precisa ter até " + Config.GuildTagLimit + " caracteres ou utilizou uma cor proibida. Tente uma mais curta!"));
+                                reopenInventory(p);
                                 return;
                             }
                             if (GuildHandler.doesGuildTagExist(response, g.getId())) {
@@ -137,6 +138,7 @@ public class GuildEditMenu implements Listener {
                             }
                             g.setTag(response);
                             GuildHandler.saveGuildas();
+                            MineSkyGuildas.l.info("[Clãs] " + p.getName() + " editou a tag do clã " + g.getName() + " para  " + Utils.getTag(g.getTag()));
                             p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_YES,1, 1);
                             reopenInventory(p);
                         }
@@ -154,6 +156,7 @@ public class GuildEditMenu implements Listener {
                     case RIGHT -> {
                         g.setDescription(null);
                         GuildHandler.saveGuildas();
+                        MineSkyGuildas.l.info("[Clãs] " + p.getName() + " removeu a descrição do clã " + g.getName());
                         p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_YES,1, 1);
                         reopenInventory(p);
                         return;
@@ -163,6 +166,7 @@ public class GuildEditMenu implements Listener {
                         public void onInput(String response) {
                             g.setDescription(response);
                             GuildHandler.saveGuildas();
+                            MineSkyGuildas.l.info("[Clãs] " + p.getName() + " editou a descrição do clã " + g.getName() + " para " + g.getDescription());
                             p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO,1, 1);
                             reopenInventory(p);
                         }

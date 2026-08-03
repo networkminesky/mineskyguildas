@@ -54,7 +54,7 @@ public class AnnouncerSubCommand extends SubCommand {
             return;
         }
 
-        if (args.length < 2 || args[1].isEmpty()) { // Added length check for args
+        if (args.length < 2 || args[1].isEmpty()) {
             sendError(player, "&4⚠ &cVocê deve indicar uma mensagem para fazer um anúncio.");
             return;
         }
@@ -68,6 +68,7 @@ public class AnnouncerSubCommand extends SubCommand {
             return;
         }
         GuildHandler.addNotice(guild, message, player);
+        MineSkyGuildas.l.info("[Clãs] " + player.getName() + " anunciou \"" + message + "\" no clã " + guild.getName());
         GuildHandler.broadcastGuildMessageNoNotice(guild, Utils.c("&b✉ &3" + player.getName() + "&8: &f" + message));
     }
 }

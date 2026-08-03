@@ -42,5 +42,6 @@ public class ReloadSubCommand extends SubCommand {
         plugin.loadMongoDB();
         plugin.handler = new GuildHandler();
         player.sendMessage(Utils.c("&2✅ &aPlugin recarregado."));
+        MineSkyGuildas.l.info("[Clãs] " + player.getName() + " recarregou o plugin.");
     }
 }

@@ -1,5 +1,6 @@
 package net.mineskyguildas.commands.subcommands.guild;
 
+import net.mineskyguildas.MineSkyGuildas;
 import net.mineskyguildas.commands.subcommands.SubCommand;
 import net.mineskyguildas.data.Guilds;
 import net.mineskyguildas.enums.GuildRoles;
@@ -81,6 +82,7 @@ public class KickSubCommand extends SubCommand {
         }
 
         GuildHandler.removeMember(who, guild);
+        MineSkyGuildas.l.info("[Clãs] " + player.getName() + " expulsou " + who.getName() + " do clã " + guild.getName());
         GuildHandler.broadcastGuildMessage(guild, "&3\uD83D\uDEA7 &b" + who.getName() + " &3expulso por &b" + player.getName() + "&3.");
         who.sendMessage(Utils.c("&4\uD83D\uDEA7 &cVocê foi expulso da " + guild.getName()));
     }
