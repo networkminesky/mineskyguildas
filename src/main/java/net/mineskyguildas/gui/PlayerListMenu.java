@@ -131,7 +131,7 @@ public class PlayerListMenu implements Listener {
     }
 
     private static void renderPage(Player viewer, Inventory inv, int page, List<PlayerStats> stats) {
-        int playersPerPage = 45;
+        int playersPerPage = 36;
         int maxPage = (int) Math.ceil((double) stats.size() / playersPerPage);
         if (maxPage == 0) maxPage = 1;
         int currentPage = Math.max(1, Math.min(page, maxPage));
@@ -165,7 +165,17 @@ public class PlayerListMenu implements Listener {
             ));
         }
 
+        ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
+        ItemMeta meta = glass.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(" ");
+            glass.setItemMeta(meta);
+        }
+        for (int i = 46; i <= 48; i++) inv.setItem(i, glass);
+        for (int i = 50; i <= 52; i++) inv.setItem(i, glass);
+
         inv.setItem(45, simpleButton(Material.ARROW, "Página Anterior", "Voltar uma página."));
+        inv.setItem(49, simpleButton(Material.RED_WOOL, "Voltar", "Voltar para o menu anterior."));
         inv.setItem(53, simpleButton(Material.ARROW, "Próxima Página", "Avançar uma página."));
 
         viewer.updateInventory();

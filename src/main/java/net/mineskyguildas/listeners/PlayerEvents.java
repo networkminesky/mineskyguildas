@@ -155,23 +155,21 @@ public class PlayerEvents implements Listener {
                     new TextComponent(Utils.c("&7☠ &4+&c1 XP &4para seu clã por derrotar um mob hostil&c!")));
         }
     }
-//    @EventHandler
-//    public void onMythicMobDeath(MythicMobDeathEvent e) {
-//        if (!(e.getKiller() instanceof Player player)) return;
-//
-//        Guilds guild = GuildHandler.getGuildByPlayer(player.getUniqueId());
-//        if (guild == null) return;
-//
-//        EntityType type = e.getEntity().getType();
-//
-//        boolean isHostile = (type == EntityType.HUSK);
-//
-//        if (isHostile) {
-//            GuildHandler.addXpToGuild(player.getUniqueId(), 5);
-//            player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-//                    new TextComponent(Utils.c("&7☠ &4+&c5 XP &4para sua guilda por derrotar um mob hostil&c!")));
-//        }
-//    }
+
+    @EventHandler
+    public void onMythicMobDeath(MythicMobDeathEvent e) {
+        if (!(e.getKiller() instanceof Player player)) return;
+
+        Guilds guild = GuildHandler.getGuildByPlayer(player.getUniqueId());
+        if (guild == null) return;
+
+        if (e.getMob().getType().getHealth().get() >= 100.0) {
+            GuildHandler.addXpToGuild(player.getUniqueId(), 5);
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+                   new TextComponent(Utils.c("&7☠ &4+&c5 XP &4para seu clã por derrotar um mob custom do servidor&c!")));
+        }
+    }
+
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent e) {
         if (e.getBlock().getType().name().endsWith("ORE")) {

@@ -287,6 +287,11 @@ public class GuildHandler {
         saveGuildas();
     }
 
+    public static void removeMember(UUID uuid, Guilds guild) {
+        guild.removeMember(uuid);
+        saveGuildas();
+    }
+
     public static void addKill(Player player, Guilds guild) {
         guild.getMemberData(player.getUniqueId()).addKill();
         saveGuildas();
