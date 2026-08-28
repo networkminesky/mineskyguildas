@@ -4,6 +4,7 @@ import com.mongodb.client.MongoCollection;
 import net.mineskyguildas.api.MineSkyGuildasAPI;
 import net.mineskyguildas.commands.GuildChatCommand;
 import net.mineskyguildas.commands.GuildCommand;
+import net.mineskyguildas.commands.StatsCommand;
 import net.mineskyguildas.commands.tabcompleter.GuildTabCompleter;
 import net.mineskyguildas.config.Config;
 import net.mineskyguildas.config.managers.ConfigManager;
@@ -109,6 +110,7 @@ public final class MineSkyGuildas extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new BedrockRequestMenu(this), this);
         getServer().getPluginManager().registerEvents(new BedrockInviteMenu(this), this);
         getServer().getPluginManager().registerEvents(new BedrockReagroupMenu(this), this);
+        getServer().getPluginManager().registerEvents(new StatsMenu(this), this);
     }
 
     private void registerCommands() {
@@ -117,6 +119,7 @@ public final class MineSkyGuildas extends JavaPlugin {
         this.getCommand(".").setExecutor(new GuildChatCommand(this, GuildChatType.GUILD));
         this.getCommand("ally").setExecutor(new GuildChatCommand(this, GuildChatType.ALLY));
         this.getCommand("líderes").setExecutor(new GuildChatCommand(this, GuildChatType.LEADER));
+        this.getCommand("info").setExecutor(new StatsCommand());
         this.getCommand("guildas").setTabCompleter(new GuildTabCompleter());
     }
 

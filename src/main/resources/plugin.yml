@@ -25,6 +25,8 @@ commands:
     description: Comando para um chat exclusivo dos líderes da guilda.
     usage: /líderes <mensagem>
     aliases: [lider,líder,lideres]
+  info:
+    aliases: [informações,informacoes,estatisticas]
 
 permissions:
   mineskyguildas.kdr.exclude:
