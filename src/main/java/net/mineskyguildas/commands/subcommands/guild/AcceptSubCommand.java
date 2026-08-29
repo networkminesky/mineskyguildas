@@ -120,6 +120,13 @@ public class AcceptSubCommand extends SubCommand {
             }
 
             Guilds guild = plugin.getInviteHandler().getInviteGuild(playerId);
+
+            if (guild.getMembers().size() - 1 >= guild.getMemberLimit()) {
+                plugin.getInviteHandler().removeInvite(playerId);
+                player.sendMessage(Utils.c("&4⚠ &cO clã atingiu o limite de membros (" + guild.getMemberLimit() + ")." + (guild.getLevel() >= 6 ? "" : " Suba o nível do clã para expandir esse limite!")));
+                return;
+            }
+
             PlayerJoinGuildEvent event = new PlayerJoinGuildEvent(player, guild);
             plugin.getServer().getPluginManager().callEvent(event);
             if (event.isCancelled()) {

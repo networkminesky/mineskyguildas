@@ -105,9 +105,10 @@ public class PlayerEvents implements Listener {
         if (killerGuild != null) {
             if (killerGuild.equals(killedGuild)) return;
 
+            GuildHandler.addKill(killer, killerGuild);
+            GuildHandler.getMemberPromoteKills(killer, killerGuild);
+
             if (killedGuild != null) {
-                GuildHandler.addKill(killer, killerGuild);
-                GuildHandler.getMemberPromoteKills(killer, killerGuild);
                 if (killedGuild.isAlly(killerGuild)) {
                     killerGuild.removeXP(20);
                     killer.sendMessage(Utils.c("&cSeu clã perdeu 20 XP por abater um aliado!"));
@@ -126,9 +127,6 @@ public class PlayerEvents implements Listener {
             killer.spigot().sendMessage(ChatMessageType.ACTION_BAR,
                     new TextComponent(Utils.c("&7☠ &4+&c5 XP &4para seu clã por derrotar um jogador&c!")));
         }
-
-        GuildHandler.addKill(killer, killerGuild);
-        GuildHandler.getMemberPromoteKills(killer, killerGuild);
     }
 
     @EventHandler

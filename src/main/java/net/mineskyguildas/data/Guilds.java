@@ -191,12 +191,12 @@ public class Guilds {
 
     public double xpRequiredForNextLevel() {
         switch (level) {
-            case 0: return 5000;
-            case 1: return 15000;
-            case 2: return 35000;
-            case 3: return 75000;
-            case 4: return 150000;
-            case 5: return 300000;
+            case 0: return 2500;
+            case 1: return 7500;
+            case 2: return 17500;
+            case 3: return 37500;
+            case 4: return 75000;
+            case 5: return 150000;
             default: return 0;
         }
     }
