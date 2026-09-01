@@ -21,7 +21,8 @@ public class GuildTabCompleter implements TabCompleter {
             "fogo-amigo", "base", "banco", "convidar", "aceitar", "rejeitar", "estandarte",
             "aliado", "rival", "anunciar", "mural", "ajuda", "lista", "membros",
             "coordenadas", "reagrupar",
-            "guerra", "traidor", "traidores", "lista-negra"
+            "guerra", "traidor", "traidores", "lista-negra",
+            "confiar"
     );
     private final List<String> AdminsubCommands = Arrays.asList("admin");
 
@@ -78,7 +79,7 @@ public class GuildTabCompleter implements TabCompleter {
                     completions = getMatches(args[1], Utils.getGuildMembersNamePerPlayer(player));
                 }
             } else if (args[0].equalsIgnoreCase("admin") && s.hasPermission("mineskyguildas.admin")) {
-                completions = getMatches(args[1], Arrays.asList("banco-admin", "promover-admin", "rebaixar-admin", "forçar-entrada", "resetar-kdr", "dados", "fogo-amigo-global", "spy", "reload", "reconnect"));
+                completions = getMatches(args[1], Arrays.asList("banco-admin", "promover-admin", "rebaixar-admin", "forçar-entrada", "resetar-kdr", "dados", "fogo-amigo-global", "spy", "reload", "reconnect", "mural-admin"));
             }
         } else if (args.length == 3) {
             if (args[0].equalsIgnoreCase("aliado") || args[0].equalsIgnoreCase("rival")) {
@@ -103,7 +104,7 @@ public class GuildTabCompleter implements TabCompleter {
                     completions = getMatches(args[2], Utils.getOnlinePlayerNames());
                 } else if (args[1].equalsIgnoreCase("dados")) {
                     completions = getMatches(args[2], Arrays.asList("editar", "deletar", "resetar"));
-                } else if (args[1].equalsIgnoreCase("forçar-entrada")) {
+                } else if (args[1].equalsIgnoreCase("forçar-entrada") || args[1].equalsIgnoreCase("mural-admin")) {
                     completions = getMatches(args[2], Utils.getGuildsTags());
                 }
             }

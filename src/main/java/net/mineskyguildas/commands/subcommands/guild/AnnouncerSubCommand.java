@@ -7,11 +7,11 @@ import net.mineskyguildas.data.Guilds;
 import net.mineskyguildas.enums.GuildRoles;
 import net.mineskyguildas.handlers.GuildHandler;
 import net.mineskyguildas.utils.Utils;
+import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static net.mineskyguildas.commands.GuildCommand.sendError;
 
@@ -69,6 +69,27 @@ public class AnnouncerSubCommand extends SubCommand {
         }
         GuildHandler.addNotice(guild, message, player);
         MineSkyGuildas.l.info("[Clãs] " + player.getName() + " anunciou \"" + message + "\" no clã " + guild.getName());
+        Set<UUID> recipients = new HashSet<>();
+
+        recipients.addAll(guild.getMembers().keySet());
+
+
+        String spy = Utils.c("&3[Spy] " +
+                "&8✉ &8[&f" + guild.getTag() + "&8] &7" + player.getName() + "&8: &f" + message);
+
+
+        Bukkit.getOnlinePlayers().stream()
+                .filter(p -> !recipients.contains(p.getUniqueId()))
+                .filter(p -> p.hasPermission("mineskyguildas.spy"))
+                .forEach(p -> {
+                    MineSkyGuildas.getInstance().getPlayerData().getSpy(p.getUniqueId(), spyAtivado -> {
+                        if (spyAtivado) {
+                            p.getScheduler().run(MineSkyGuildas.getInstance(), task -> {
+                                p.sendMessage(spy);
+                            }, null);
+                        }
+                    });
+                });
         GuildHandler.broadcastGuildMessageNoNotice(guild, Utils.c("&b✉ &3" + player.getName() + "&8: &f" + message));
     }
 }

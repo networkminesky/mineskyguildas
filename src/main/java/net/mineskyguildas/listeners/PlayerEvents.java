@@ -1,5 +1,6 @@
 package net.mineskyguildas.listeners;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import io.lumine.mythic.bukkit.events.MythicMobDeathEvent;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -10,6 +11,7 @@ import net.mineskyguildas.handlers.GuildHandler;
 import net.mineskyguildas.handlers.requests.GuildRequestType;
 import net.mineskyguildas.utils.Utils;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
@@ -22,7 +24,10 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.metadata.FixedMetadataValue;
 
 import java.util.List;
@@ -102,6 +107,7 @@ public class PlayerEvents implements Listener {
         Guilds killedGuild = GuildHandler.getGuildByPlayer(killed.getUniqueId());
         Guilds killerGuild = GuildHandler.getGuildByPlayer(killer.getUniqueId());
 
+        if (e.isCancelled()) return;
         if (killerGuild != null) {
             if (killerGuild.equals(killedGuild)) return;
 
@@ -148,6 +154,7 @@ public class PlayerEvents implements Listener {
 
         Guilds guild = GuildHandler.getGuildByPlayer(killer.getUniqueId());
         if (guild != null) {
+            if (e.isCancelled()) return;
             GuildHandler.addXpToGuild(killer.getUniqueId(), 1);
             killer.spigot().sendMessage(ChatMessageType.ACTION_BAR,
                     new TextComponent(Utils.c("&7☠ &4+&c1 XP &4para seu clã por derrotar um mob hostil&c!")));
@@ -170,6 +177,7 @@ public class PlayerEvents implements Listener {
 
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent e) {
+        if (e.isCancelled()) return;
         if (e.getBlock().getType().name().endsWith("ORE")) {
             e.getBlock().setMetadata("block_placed", new FixedMetadataValue(plugin, true));
         }
@@ -186,6 +194,7 @@ public class PlayerEvents implements Listener {
         }
 
         if (e.getBlock().getType().name().endsWith("ORE")) {
+            if (e.isCancelled()) return;
             GuildHandler.addXpToGuild(player.getUniqueId(), 1);
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
                     new TextComponent(Utils.c("&7⛏ &6+&e1 XP &epara seu clã por minerar minérios&6!")));

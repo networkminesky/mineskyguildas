@@ -443,6 +443,7 @@ public class GuildHandler {
                         }
                     });
                 });
+        Bukkit.getConsoleSender().sendMessage("[SPY] " + (allies ? "[ALIADOS]" : "") + "[" + Utils.getTag(tag) + "] " + name + " (" + role.toUpperCase() + "): " + message);
     }
 
     public static void broadcastLeaderChat(Player sender, Guilds guilds, String message) {
@@ -476,6 +477,7 @@ public class GuildHandler {
                         }
                     });
                 });
+        Bukkit.getConsoleSender().sendMessage("[SPY] [LÍDERES] [" + Utils.getTag(tag) + "] " + name + " (" + role.toUpperCase() + "): " + message);
     }
 
 

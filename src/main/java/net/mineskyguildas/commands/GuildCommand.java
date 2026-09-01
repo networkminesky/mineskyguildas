@@ -52,7 +52,9 @@ public class GuildCommand implements CommandExecutor {
                 new GuerraSubCommand(),
                 new TraitorSubCommand(),
                 new TraitorsSubCommand(),
-                new DadosAdminSubCommand()
+                new DadosAdminSubCommand(),
+                new TrustSubCommand(),
+                new NoticeboardAdminSubCommand()
         ).forEach(this::register);
     }
 
@@ -65,7 +67,7 @@ public class GuildCommand implements CommandExecutor {
     }
 
     public static void commandList(CommandSender s) {
-        s.sendMessage(Utils.c("&9&lMineSkyGuildas &7v" + MineSkyGuildas.getInstance().getDescription().getVersion()));
+        s.sendMessage(Utils.c("&3&lMineSkyGuildas"));
         s.sendMessage(Utils.c("&8----------------------------------------"));
         subCommands.stream()
                 .filter(sub -> !sub.getAdminCommand() || s.hasPermission("mineskyguildas.admin"))
