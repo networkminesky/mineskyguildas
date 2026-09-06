@@ -43,6 +43,7 @@ public class PromoteSubCommand extends SubCommand {
 
     @Override
     public void perform(Player player, String[] args) {
+
         if (!GuildHandler.hasGuild(player)) {
             sendError(player, "&4⚠ &cVocê não pertence a nenhum clã no momento.");
             return;
@@ -64,21 +65,39 @@ public class PromoteSubCommand extends SubCommand {
         OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
         UUID targetUUID = target.getUniqueId();
 
+        // Verifica se o jogador existe
+        if (!target.hasPlayedBefore() && !target.isOnline()) {
+            sendError(player, "&4⚠ &cJogador não encontrado.");
+            return;
+        }
+
+        // Não pode promover a si mesmo
         if (targetUUID.equals(player.getUniqueId())) {
             sendError(player, "&4⚠ &cVocê não pode promover a si mesmo.");
             return;
         }
 
-        if (!GuildHandler.hasGuild(target.getPlayer()) || !GuildHandler.getGuildByPlayer(targetUUID).equals(guild)) {
+        // Verifica a guilda pelo UUID, funcionando offline
+        Guilds targetGuild = GuildHandler.getGuildByPlayer(targetUUID);
+
+        if (targetGuild == null || !targetGuild.equals(guild)) {
             sendError(player, "&4⚠ &cEste jogador não é membro do seu clã.");
             return;
         }
 
         GuildRoles targetRole = guild.getRole(targetUUID);
+
+        if (targetRole == null) {
+            sendError(player, "&4⚠ &cNão foi possível identificar o cargo deste membro.");
+            return;
+        }
+
         GuildRoles newRole = GuildRoles.getRole(args[2]);
 
         if (newRole == null || newRole.equals(GuildRoles.LEADER)) {
-            sendError(player, "&4⚠ &cCargo inválido. Use: Sub-Líder, Capitão, Recrutador, Leal, Membro ou Recruta.");
+            sendError(player,
+                    "&4⚠ &cCargo inválido. Use: Sub-Líder, Capitão, Recrutador, Leal, Membro ou Recruta."
+            );
             return;
         }
 
@@ -88,14 +107,31 @@ public class PromoteSubCommand extends SubCommand {
         }
 
         guild.getMemberData(targetUUID).setRole(newRole);
-        MineSkyGuildas.l.info("[Clãs] " + player.getName() + " promoveu o " + target.getName() + " para " + newRole.name() + " no clã " + guild.getName());
+
+        String targetName = target.getName() != null
+                ? target.getName()
+                : args[1];
+
         String newRoleName = GuildRoles.getLabelRole(newRole);
 
-        GuildHandler.broadcastGuildMessage(guild,
-                "&3➕ &b" + target.getName() + " &3foi promovido a &b" + newRoleName + " &3por &b" + player.getName() + "&3!");
+        MineSkyGuildas.l.info(
+                "[Clãs] " + player.getName()
+                        + " promoveu o " + targetName
+                        + " para " + newRole.name()
+                        + " no clã " + guild.getName()
+        );
+
+        GuildHandler.broadcastGuildMessage(
+                guild,
+                "&3➕ &b" + targetName
+                        + " &3foi promovido a &b" + newRoleName
+                        + " &3por &b" + player.getName() + "&3!"
+        );
 
         if (target.isOnline() && target.getPlayer() != null) {
-            target.getPlayer().sendMessage("§aVocê foi promovido a " + newRoleName + "!");
+            target.getPlayer().sendMessage(
+                    "§aVocê foi promovido a " + newRoleName + "!"
+            );
         }
     }
 }

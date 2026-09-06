@@ -12,9 +12,7 @@ import net.mineskyguildas.handlers.requests.GuildRequestType;
 import net.mineskyguildas.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Monster;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -145,7 +143,9 @@ public class PlayerEvents implements Listener {
 
     @EventHandler
     public void onEntityDeath(EntityDeathEvent e) {
-        if (!(e.getEntity() instanceof Monster)) return;
+        LivingEntity entity = e.getEntity();
+
+        if (!(entity instanceof Monster || entity instanceof Slime || entity instanceof Ghast || entity instanceof Phantom)) return;
 
         if (e.getEntity().hasMetadata("spawned_mob")) return;
 
@@ -155,6 +155,12 @@ public class PlayerEvents implements Listener {
         Guilds guild = GuildHandler.getGuildByPlayer(killer.getUniqueId());
         if (guild != null) {
             if (e.isCancelled()) return;
+            if (entity instanceof Slime) {
+                GuildHandler.addXpToGuild(killer.getUniqueId(), 0.1);
+                killer.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+                        new TextComponent(Utils.c("&7☠ &4+&c0.1 XP &4para seu clã por derrotar um mob hostil&c!")));
+                return;
+            }
             GuildHandler.addXpToGuild(killer.getUniqueId(), 1);
             killer.spigot().sendMessage(ChatMessageType.ACTION_BAR,
                     new TextComponent(Utils.c("&7☠ &4+&c1 XP &4para seu clã por derrotar um mob hostil&c!")));

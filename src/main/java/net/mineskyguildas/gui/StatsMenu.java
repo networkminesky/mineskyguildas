@@ -7,6 +7,7 @@ import net.mineskyguildas.handlers.GuildHandler;
 import net.mineskyguildas.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer; // Importação adicionada
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -36,14 +37,14 @@ public class StatsMenu implements Listener {
         this.plugin = plugin;
     }
 
-    private static String parse(Player target, String text) {
+    private static String parse(OfflinePlayer target, String text) {
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
             text = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(target, text);
         }
         return Utils.c(text);
     }
 
-    public static ItemStack papiButton(Material m, Player target, String name, String... lore) {
+    public static ItemStack papiButton(Material m, OfflinePlayer target, String name, String... lore) {
         ItemStack it = new ItemStack(m, 1);
         ItemMeta im = it.getItemMeta();
         if (im != null) {
@@ -58,7 +59,7 @@ public class StatsMenu implements Listener {
         return it;
     }
 
-    public static ItemStack papiHeadButton(Player target, String name, String... lore) {
+    public static ItemStack papiHeadButton(OfflinePlayer target, String name, String... lore) {
         ItemStack it = new ItemStack(Material.PLAYER_HEAD, 1);
         SkullMeta im = (SkullMeta) it.getItemMeta();
         if (im != null) {
@@ -85,8 +86,9 @@ public class StatsMenu implements Listener {
         return it;
     }
 
-    private static void reorganizeItems(Player viewer, Player target, Inventory inv) {
+    private static void reorganizeItems(Player viewer, OfflinePlayer target, Inventory inv) {
         Guilds guild = GuildHandler.getGuildByPlayer(target.getUniqueId());
+        String targetName = target.getName() != null ? target.getName().toUpperCase() : "JOGADOR";
 
         for (int i = 0; i < inv.getSize(); i++) {
             inv.setItem(i, backgroundFiller());
@@ -94,7 +96,7 @@ public class StatsMenu implements Listener {
 
         inv.setItem(10, papiHeadButton(
                 target,
-                "&b&lPERFIL DE " + target.getName().toUpperCase(),
+                "&b&lPERFIL DE " + targetName,
                 "• Informações básicas do jogador.",
                 "",
                 "&fGrupo atual: &7" + ("%luckperms_prefix%".equals("&7") ? "Membro" : "%luckperms_prefix%"),
@@ -111,7 +113,6 @@ public class StatsMenu implements Listener {
                 "&fSaldo: &a%vault_eco_balance_formatted%"
         ));
 
-        // Slot 13: AuraSkills do Alvo
         inv.setItem(13, papiButton(
                 Material.BREWING_STAND,
                 target,
@@ -158,8 +159,9 @@ public class StatsMenu implements Listener {
         inv.setItem(22, papiButton(Material.BARRIER, target, "&c&lFechar Menu", "• Clique para fechar esta interface."));
     }
 
-    public static void openMainMenu(Player viewer, Player target) {
-        String title = viewer.equals(target) ? "MineSky - Seus Status" : "MineSky - Status de " + target.getName();
+    public static void openMainMenu(Player viewer, OfflinePlayer target) {
+        String targetName = target.getName() != null ? target.getName() : "Jogador";
+        String title = viewer.getUniqueId().equals(target.getUniqueId()) ? "MineSky - Seus Status" : "MineSky - Status de " + targetName;
         Inventory inv = Bukkit.createInventory(null, 27, title);
 
         inventories.put(viewer.getUniqueId(), inv);

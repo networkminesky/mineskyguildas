@@ -69,12 +69,19 @@ public class DemoteSubCommand extends SubCommand {
             return;
         }
 
-        if (!GuildHandler.hasGuild(target.getPlayer()) || !GuildHandler.getGuildByPlayer(targetUUID).equals(guild)) {
+        Guilds targetGuild = GuildHandler.getGuildByPlayer(targetUUID);
+
+        if (targetGuild == null || !targetGuild.equals(guild)) {
             sendError(player, "&4⚠ &cEste jogador não é membro do seu clã.");
             return;
         }
 
         GuildRoles targetRole = guild.getRole(targetUUID);
+
+        if (targetRole == null) {
+            sendError(player, "&4⚠ &cNão foi possível identificar o cargo deste membro.");
+            return;
+        }
 
         if (targetRole == GuildRoles.LEADER) {
             sendError(player, "&4⚠ &cVocê não pode rebaixar o líder do clã!");
@@ -82,7 +89,7 @@ public class DemoteSubCommand extends SubCommand {
         }
 
         if (targetRole == GuildRoles.RECRUIT) {
-            sendError(player, "&4⚠ &cVocê não pode rebaixar alguém que já esta com o último cargo!");
+            sendError(player, "&4⚠ &cVocê não pode rebaixar alguém que já está com o último cargo!");
             return;
         }
 
@@ -92,17 +99,40 @@ public class DemoteSubCommand extends SubCommand {
         }
 
         GuildRoles[] allRoles = GuildRoles.values();
-        int newIndex = Math.min(targetRole.ordinal() + 1, allRoles.length - 1);
+
+        int newIndex = Math.min(
+                targetRole.ordinal() + 1,
+                allRoles.length - 1
+        );
+
         GuildRoles newRole = allRoles[newIndex];
 
         guild.getMemberData(targetUUID).setRole(newRole);
 
+        String targetName = target.getName() != null
+                ? target.getName()
+                : args[1];
+
         String newRoleName = GuildRoles.getLabelRole(newRole);
 
-        GuildHandler.broadcastGuildMessage(guild, "&c➖ &4" + target.getName() + " &cfoi rebaixado a &4" + newRoleName + " &cpor &4" + player.getName() + "&c!");
-        MineSkyGuildas.l.info("[Clãs] " + player.getName() + " rebaixou o membro " + target.getName() + " do clã " + guild.getName() + " para o cargo " + newRoleName);
+        GuildHandler.broadcastGuildMessage(
+                guild,
+                "&c➖ &4" + targetName
+                        + " &cfoi rebaixado a &4" + newRoleName
+                        + " &cpor &4" + player.getName() + "&c!"
+        );
+
+        MineSkyGuildas.l.info(
+                "[Clãs] " + player.getName()
+                        + " rebaixou o membro " + targetName
+                        + " do clã " + guild.getName()
+                        + " para o cargo " + newRoleName
+        );
+
         if (target.isOnline() && target.getPlayer() != null) {
-            target.getPlayer().sendMessage("§cVocê foi rebaixado a " + newRoleName + "!");
+            target.getPlayer().sendMessage(
+                    "§cVocê foi rebaixado a " + newRoleName + "!"
+            );
         }
     }
 }

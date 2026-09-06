@@ -1,12 +1,12 @@
 package net.mineskyguildas.commands.subcommands.guild;
 
-import net.mineskyguildas.MineSkyGuildas;
 import net.mineskyguildas.commands.subcommands.SubCommand;
 import net.mineskyguildas.data.Guilds;
 import net.mineskyguildas.enums.GuildRoles;
 import net.mineskyguildas.handlers.GuildHandler;
 import net.mineskyguildas.utils.Utils;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -14,6 +14,7 @@ import java.util.List;
 import static net.mineskyguildas.commands.GuildCommand.sendError;
 
 public class KickSubCommand extends SubCommand {
+
     @Override
     public String getName() {
         return "expulsar";
@@ -21,12 +22,12 @@ public class KickSubCommand extends SubCommand {
 
     @Override
     public String getDescription() {
-        return "Expulsar um membro do clã";
+        return "Expulsar um membro da guilda";
     }
 
     @Override
     public String getUsage() {
-        return "/clan expulsar <membro>";
+        return "/guilda expulsar <membro>";
     }
 
     @Override
@@ -42,13 +43,15 @@ public class KickSubCommand extends SubCommand {
     @Override
     public void perform(Player player, String[] args) {
         if (!GuildHandler.hasGuild(player)) {
-            sendError(player, "&4⚠ &cVocê não pertence a nenhum clã no momento.");
+            sendError(player, "&4⚠ &cVocê não pertence a nenhuma guilda no momento.");
             return;
         }
 
         Guilds guild = GuildHandler.getGuildByPlayer(player.getUniqueId());
-        if (!(GuildRoles.isLeadership(guild.getRole(player.getUniqueId())))) {
-            sendError(player, "&4⚠ &cApenas os &lCAPITÕES&r &cdo clã pode expulsar membros.");
+        GuildRoles rolePlayer = guild.getRole(player.getUniqueId());
+
+        if (!GuildRoles.isLeadership(rolePlayer)) {
+            sendError(player, "&4⚠ &cApenas os &lCAPITÕES&r &cda guilda podem expulsar membros.");
             return;
         }
 
@@ -57,33 +60,56 @@ public class KickSubCommand extends SubCommand {
             return;
         }
 
-        Player who = Bukkit.getPlayer(args[1]);
-        if (who == null || !GuildHandler.getGuildByPlayer(who.getUniqueId()).equals(guild)) {
-            sendError(player, "&4⚠ &cMembro não encontrado.");
+        String targetName = args[1];
+
+        OfflinePlayer who = Bukkit.getPlayerExact(targetName);
+        if (who == null) {
+            for (OfflinePlayer op : Bukkit.getOfflinePlayers()) {
+                if (op.getName() != null && op.getName().equalsIgnoreCase(targetName)) {
+                    who = op;
+                    break;
+                }
+            }
+        }
+
+        if (who == null) {
+            who = Bukkit.getOfflinePlayer(targetName);
+        }
+
+        GuildRoles roleWho = guild.getRole(who.getUniqueId());
+
+        if (roleWho == null) {
+            sendError(player, "&4⚠ &cEste jogador não pertence à sua guilda.");
             return;
         }
 
-        if (who.equals(player)) {
-            sendError(player, "&4⚠ &cVocê não pode expulsar sí mesmo.");
+        if (who.getUniqueId().equals(player.getUniqueId())) {
+            sendError(player, "&4⚠ &cVocê não pode expulsar a si mesmo.");
             return;
         }
 
         if (who.getUniqueId().equals(guild.getLeader())) {
-            sendError(player, "&4⚠ &cVocê não pode expulsar o líder do clã.");
+            sendError(player, "&4⚠ &cVocê não pode expulsar o líder da guilda.");
             return;
         }
-
-        GuildRoles rolePlayer = guild.getRole(player.getUniqueId());
-        GuildRoles roleWho = guild.getRole(who.getUniqueId());
 
         if (!GuildRoles.canPermission(rolePlayer, roleWho)) {
             sendError(player, "&4⚠ &cVocê não pode expulsar alguém com um cargo elevado.");
             return;
         }
 
-        GuildHandler.removeMember(who, guild);
-        MineSkyGuildas.l.info("[Clãs] " + player.getName() + " expulsou " + who.getName() + " do clã " + guild.getName());
-        GuildHandler.broadcastGuildMessage(guild, "&3\uD83D\uDEA7 &b" + who.getName() + " &3expulso por &b" + player.getName() + "&3.");
-        who.sendMessage(Utils.c("&4\uD83D\uDEA7 &cVocê foi expulso da " + guild.getName()));
+        GuildHandler.removeMember(who.getUniqueId(), guild);
+        String name = who.getName() != null ? who.getName() : targetName;
+
+        GuildHandler.broadcastGuildMessage(
+                guild,
+                "&3🚧 &b" + name + " &3foi expulso por &b" + player.getName() + "&3."
+        );
+
+        if (who.isOnline() && who.getPlayer() != null) {
+            who.getPlayer().sendMessage(
+                    Utils.c("&4🚧 &cVocê foi expulso da " + guild.getName())
+            );
+        }
     }
 }

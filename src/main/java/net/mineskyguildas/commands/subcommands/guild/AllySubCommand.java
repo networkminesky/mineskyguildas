@@ -61,7 +61,7 @@ public class AllySubCommand extends SubCommand {
 
         GuildRoles role = guild.getRole(player.getUniqueId());
         if (!EnumSet.of(GuildRoles.LEADER, GuildRoles.SUB_LEADER).contains(role) &&
-                !args[1].equalsIgnoreCase("listar") && !args[1].equalsIgnoreCase("list")) {
+                !args[1].equalsIgnoreCase("listar") && !args[1].equalsIgnoreCase("list") && !args[1].equalsIgnoreCase("lista")) {
             sendError(player, "&c🔒 Você não tem permissão para gerenciar alianças.");
             return;
         }

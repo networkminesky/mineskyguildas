@@ -49,38 +49,59 @@ public class PromoteAdminSubCommand extends SubCommand {
         }
 
         OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
-        if (target == null || target.getName() == null) {
-            sendError(player, "&4⚠ &cJogador não encontrado.");
-            return;
-        }
-
         UUID targetUUID = target.getUniqueId();
 
         Guilds guild = GuildHandler.getGuildByPlayer(targetUUID);
+
         if (guild == null) {
             sendError(player, "&4⚠ &cEste jogador não pertence a nenhum clã.");
             return;
         }
 
         GuildRoles newRole = GuildRoles.getRole(args[2]);
+
         if (newRole == null) {
-            sendError(player, "&4⚠ &cCargo inválido. Use: Líder, Sub-Líder, Capitão, Recrutador, Leal, Membro ou Recruta.");
+            sendError(player,
+                    "&4⚠ &cCargo inválido. Use: Líder, Sub-Líder, Capitão, Recrutador, Leal, Membro ou Recruta."
+            );
             return;
         }
 
         guild.getMemberData(targetUUID).setRole(newRole);
 
+        String targetName = target.getName() != null
+                ? target.getName()
+                : args[1];
+
         String newRoleName = GuildRoles.getLabelRole(newRole);
-        MineSkyGuildas.l.info("[Clãs] " + player.getName() + " promoveu o " + target.getName() + " para o cargo " + newRoleName + " no clã " + guild.getName());
         String guildName = guild.getName();
 
-        GuildHandler.broadcastGuildMessage(guild,
-                "&3➕ &b" + target.getName() + " &3foi promovido a &b" + newRoleName + "&3!");
+        MineSkyGuildas.l.info(
+                "[Clãs] " + player.getName()
+                        + " promoveu o " + targetName
+                        + " para o cargo " + newRoleName
+                        + " no clã " + guildName
+        );
 
-        player.sendMessage("§aVocê promoveu §b" + target.getName() + " §ado clã §b" + guildName + " §apara §b" + newRoleName + "§a!");
+        GuildHandler.broadcastGuildMessage(
+                guild,
+                "&3➕ &b" + targetName
+                        + " &3foi promovido a &b" + newRoleName
+                        + "&3!"
+        );
+
+        player.sendMessage(
+                "§aVocê promoveu §b" + targetName
+                        + " §ado clã §b" + guildName
+                        + " §apara §b" + newRoleName + "§a!"
+        );
 
         if (target.isOnline() && target.getPlayer() != null) {
-            target.getPlayer().sendMessage("§aVocê foi promovido a §b" + newRoleName + " §apelo administrador §b" + player.getName() + "§a!");
+            target.getPlayer().sendMessage(
+                    "§aVocê foi promovido a §b" + newRoleName
+                            + " §apelo administrador §b"
+                            + player.getName() + "§a!"
+            );
         }
     }
 }
