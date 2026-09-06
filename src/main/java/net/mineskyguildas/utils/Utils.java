@@ -30,6 +30,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Utils {
+    private static final Map<UUID, ChatListener> activeChatListeners = new HashMap<>();
+
     public static String c(String s) {
         return hex(s);
     }
@@ -55,11 +57,21 @@ public class Utils {
         return ChatColor.translateAlternateColorCodes('&', message);
     }
 
+    public static void cancelChatInput(Player player) {
+        ChatListener listener = activeChatListeners.remove(player.getUniqueId());
+        if (listener != null) {
+            listener.unregister();
+        }
+    }
+
     public static void awaitChatInput(Player player, ChatInputCallback callback) {
+        cancelChatInput(player);
+
         player.sendTitle("§9§lDigite no chat", "§7Digite 'sair' para voltar!", 5, 60, 20);
         player.closeInventory();
 
-        Listener listener = new ChatListener(player, callback);
+        ChatListener listener = new ChatListener(player, callback);
+        activeChatListeners.put(player.getUniqueId(), listener);
         Bukkit.getServer().getPluginManager().registerEvents(listener, MineSkyGuildas.getInstance());
     }
 
@@ -300,28 +312,42 @@ public class Utils {
             this.callback = callback;
         }
 
-        @EventHandler(ignoreCancelled = false, priority = EventPriority.LOWEST)
+        public void unregister() {
+            AsyncPlayerChatEvent.getHandlerList().unregister(this);
+            org.bukkit.event.player.PlayerQuitEvent.getHandlerList().unregister(this);
+        }
+
+        @EventHandler(priority = EventPriority.LOWEST)
         public void onChat(AsyncPlayerChatEvent e) {
             if (!e.getPlayer().equals(player)) return;
 
             e.setCancelled(true);
 
+            activeChatListeners.remove(player.getUniqueId());
+            unregister();
+
             Utils.runOnPlayer(e.getPlayer(), () -> {
-                String msg = e.getMessage();
+                String msg = e.getMessage().trim();
 
                 if (msg.equalsIgnoreCase("cancel") || msg.equalsIgnoreCase("cancelar") ||
                         msg.equalsIgnoreCase("close") || msg.equalsIgnoreCase("sair")) {
                     callback.onCancel();
                     e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.ENTITY_VILLAGER_NO, 1, 1);
                     e.getPlayer().sendMessage(Utils.c("&cCancelando e retornando ao menu..."));
-                    AsyncPlayerChatEvent.getHandlerList().unregister(this);
                     return;
                 }
 
                 e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.ENTITY_VILLAGER_YES, 1, 1);
-                AsyncPlayerChatEvent.getHandlerList().unregister(this);
-                callback.onInput(Utils.c(msg));
+                callback.onInput(msg);
             });
+        }
+
+        @EventHandler
+        public void onQuit(org.bukkit.event.player.PlayerQuitEvent e) {
+            if (e.getPlayer().equals(player)) {
+                activeChatListeners.remove(player.getUniqueId());
+                unregister();
+            }
         }
     }
 

@@ -104,6 +104,7 @@ public class GuildInfoMenu implements Listener {
     }
 
     public static void openMainMenu(Player player) {
+        Utils.cancelChatInput(player);
         Guilds guild = GuildHandler.getGuildByPlayer(player.getUniqueId());
         if (guild == null) {
             GuildCreateMenu.openMainMenu(player, new GuildBuilder(player.getUniqueId()));

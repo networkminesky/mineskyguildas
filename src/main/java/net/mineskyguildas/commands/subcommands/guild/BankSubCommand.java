@@ -78,36 +78,37 @@ public class BankSubCommand extends SubCommand {
             return;
         } else if (args[1].equalsIgnoreCase("sacar")) {
             if (!GuildRoles.isLeaders(guild.getRole(player.getUniqueId()))) {
-                sendError(player, "&4⚠ &cApenas os &lLÍDERES&r &cdo clã pode sacar dinheiro do banco.");
-                return;
-            }
+                sendError(player, "&4⚠ &cApenas os &lLÍDERES&r &cdo clã podem sacar dinheiro do banco.");
+               return;
+         }
 
-            if (MineSkyGuildas.getInstance().getWarHandler().isGuildInActiveWar(guild.getId())
-            || MineSkyGuildas.getInstance().getWarHandler().isGuildInWarOrPending(guild.getId())) {
+          if (MineSkyGuildas.getInstance().getWarHandler().isGuildInActiveWar(guild.getId())
+                    || MineSkyGuildas.getInstance().getWarHandler().isGuildInWarOrPending(guild.getId())) {
                 sendError(player, "&4⚠ &cSeu clã está em guerra e não pode sacar o dinheiro dele.");
                 return;
-            }
+          }
 
-            if (guild.withdraw(value)) {
-                if (Vault.deposit(player, value)) {
-                    guild.withdraw(value);
-                    MineSkyGuildas.l.info("[Clãs] " + player.getName() + " sacou o valor de $" + value + " do clã " + guild.getName());
-                    GuildHandler.broadcastGuildMessage(guild, "&3\uD83D\uDCB0 &b" + player.getName() + " &3sacou uma quantia de &b$" + value + "&3!");
-                    player.sendMessage(Utils.c("&aVocê sacou $" + value + " da seu clã."));
-                } else {
-                    sendError(player, "&4⚠ &cOcorreu um erro ao depositar a sua conta.");
-                    return;
+         if (guild.withdraw(value)) {
+             if (Vault.deposit(player, value)) {
+                  MineSkyGuildas.l.info("[Clãs] " + player.getName() + " sacou o valor de $" + value + " do clã " + guild.getName());
+                  GuildHandler.broadcastGuildMessage(guild, "&3\uD83D\uDCB0 &b" + player.getName() + " &3sacou uma quantia de &b$" + value + "&3!");
+                  player.sendMessage(Utils.c("&aVocê sacou $" + value + " do seu clã."));
+              } else {
+                  guild.deposit(value);
+                  sendError(player, "&4⚠ &cOcorreu um erro ao depositar na sua conta.");
+                   return;
                 }
-            } else {
-                sendError(player, "&4⚠ &cO clã não tem dinheiro suficiente.");
-                return;
+           } else {
+             sendError(player, "&4⚠ &cO clã não tem dinheiro suficiente.");
+               return;
             }
         }
     }
 
     private boolean isInteger(String s) {
-        if (s.isEmpty()) return false;
+        if (s == null || s.isEmpty()) return false;
         try {
+            Integer.parseInt(s);
             return true;
         } catch (NumberFormatException e) {
             return false;
