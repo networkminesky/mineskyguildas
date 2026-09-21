@@ -1,6 +1,6 @@
 package net.mineskyguildas.handlers;
 
-import net.minesky.mineskygameplay.locatorapi.LocatorAPI;
+import net.minesky.gameplay.api.locator.LocatorAPI;
 import net.mineskyguildas.MineSkyGuildas;
 import net.mineskyguildas.data.Guilds;
 import net.mineskyguildas.war.WarSession;
