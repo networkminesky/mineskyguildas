@@ -125,6 +125,12 @@
       <version>2.2.5-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>com.github.networkminesky</groupId>
+      <artifactId>mineskygameplay</artifactId>
+      <version>1.0.2-BETA</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 
   <build>

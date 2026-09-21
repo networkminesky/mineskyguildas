@@ -145,25 +145,39 @@ public class Utils {
     }
 
     public static void getGuildInfoAsync(Guilds g, Consumer<ItemStack> callback) {
-        ItemStack it = (g != null && g.getBanner() != null)
-                ? g.getBanner()
-                : new ItemStack(Material.GREEN_BANNER);
-        ItemMeta im = it.getItemMeta();
+        ItemStack it;
+        if (g != null && g.getBanner() != null && !g.getBanner().getType().isAir()) {
+            it = g.getBanner().clone();
+        } else {
+            it = new ItemStack(Material.GREEN_BANNER);
+        }
 
+        ItemMeta meta = it.getItemMeta();
+        if (meta == null) {
+            it = new ItemStack(Material.GREEN_BANNER);
+            meta = it.getItemMeta();
+        }
+
+        final ItemMeta im = meta;
         String title = (g == null ? "Agente Livre" : g.getName() + " &b[&f" + g.getTag() + "&b]");
-        im.setDisplayName("§b§l" + Utils.c(title));
-        im.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
+
+        if (im != null) {
+            im.setDisplayName("§b§l" + Utils.c(title));
+            im.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
+        }
 
         if (g == null) {
-            List<String> lore = Arrays.asList(
-                    "&7• Você não está em um clã.",
-                    " ",
-                    "&bPreço: &31,500",
-                    " ",
-                    "&e➳ Clique esquerdo - Para criar um clã."
-            );
-            im.setLore(lore.stream().map(Utils::c).collect(Collectors.toList()));
-            it.setItemMeta(im);
+            if (im != null) {
+                List<String> lore = Arrays.asList(
+                        "&7• Você não está em um clã.",
+                        " ",
+                        "&bPreço: &31,500",
+                        " ",
+                        "&e➳ Clique esquerdo - Para criar um clã."
+                );
+                im.setLore(lore.stream().map(Utils::c).collect(Collectors.toList()));
+                it.setItemMeta(im);
+            }
             callback.accept(it);
             return;
         }
@@ -171,26 +185,32 @@ public class Utils {
         String formattedXp = new java.text.DecimalFormat("0.#").format(g.getXp());
         String formattedMaxXp = new java.text.DecimalFormat("0.#").format(g.xpRequiredForNextLevel());
 
+        final ItemStack finalItem = it;
         GuildStatsManager.calculateGuildStats(g, (totalKills, totalDeaths, kdr) -> {
-            List<String> lore = new ArrayList<>();
-            lore.add("&7• Informações do clã.");
-            lore.add(" ");
-            lore.add("&bDescrição: &3" + (g.getDescription() == null ? "Sem descrição" : g.getDescription()));
-            lore.add("&bLevel: &3" + g.getLevel());
-            lore.add("&bXP: &3" + formattedXp + "/" + formattedMaxXp);
-            lore.add("&bLíder: &3" + Bukkit.getOfflinePlayer(g.getLeader()).getName());
-            lore.add("&bMembros: &3" + GuildHandler.getOnlineMembers(g));
-            lore.add("&bKills totais: &3" + totalKills);
-            lore.add("&bMortes totais: &3" + totalDeaths);
-            lore.add("&bKDR médio: &3" + new DecimalFormat("0.00").format(kdr));
-            lore.add("&bRivais: &3" + (g.getRivals().isEmpty() ? "Nenhum" : String.join("&b, &3", GuildHandler.getRivalsTags(g))));
-            lore.add("&bAliados: &3" + (g.getAllies().isEmpty() ? "Nenhum" : String.join("&b, &3", GuildHandler.getAlliesTags(g))));
-            lore.add(" ");
+            if (im != null) {
+                List<String> lore = new ArrayList<>();
+                lore.add("&7• Informações do clã.");
+                lore.add(" ");
+                lore.add("&bDescrição: &3" + (g.getDescription() == null ? "Sem descrição" : g.getDescription()));
+                lore.add("&bLevel: &3" + g.getLevel());
+                lore.add("&bXP: &3" + formattedXp + "/" + formattedMaxXp);
 
-            im.setLore(lore.stream().map(Utils::c).collect(Collectors.toList()));
-            it.setItemMeta(im);
+                String leaderName = Bukkit.getOfflinePlayer(g.getLeader()).getName();
+                lore.add("&bLíder: &3" + (leaderName != null ? leaderName : "Desconhecido"));
 
-            callback.accept(it);
+                lore.add("&bMembros: &3" + GuildHandler.getOnlineMembers(g));
+                lore.add("&bKills totais: &3" + totalKills);
+                lore.add("&bMortes totais: &3" + totalDeaths);
+                lore.add("&bKDR médio: &3" + new DecimalFormat("0.00").format(kdr));
+                lore.add("&bRivais: &3" + (g.getRivals().isEmpty() ? "Nenhum" : String.join("&b, &3", GuildHandler.getRivalsTags(g))));
+                lore.add("&bAliados: &3" + (g.getAllies().isEmpty() ? "Nenhum" : String.join("&b, &3", GuildHandler.getAlliesTags(g))));
+                lore.add(" ");
+
+                im.setLore(lore.stream().map(Utils::c).collect(Collectors.toList()));
+                finalItem.setItemMeta(im);
+            }
+
+            callback.accept(finalItem);
         });
     }
 

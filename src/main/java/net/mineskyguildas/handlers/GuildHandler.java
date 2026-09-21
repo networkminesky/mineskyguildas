@@ -134,6 +134,10 @@ public class GuildHandler {
             );
         });
 
+        if (MineSkyGuildas.getInstance().getLocator() != null) {
+            MineSkyGuildas.getInstance().getLocator().updatePlayer(lider);
+        }
+
         MineSkyGuildas.l.info(Utils.c("| Criando a guilda " + name + " (" + id + ")..."));
     }
 
@@ -249,6 +253,10 @@ public class GuildHandler {
         broadcastGuildMessage(guild, Utils.c("&b🤝 &3Seu clã selou uma aliança com &b" + ally.getName() + "&3!"));
         broadcastGuildMessage(ally, Utils.c("&3🤝 &b" + guild.getName() + " &3formou uma aliança com seu clã!"));
         saveGuildas();
+
+        if (MineSkyGuildas.getInstance().getLocator() != null) {
+            MineSkyGuildas.getInstance().getLocator().updateBetweenGuilds(guild, ally);
+        }
     }
 
     public static void removeAlly(Guilds guild, Guilds ally, Player player) {
@@ -257,6 +265,10 @@ public class GuildHandler {
         broadcastGuildMessage(ally, Utils.c("&4⚔ &cA aliança com &4" + guild.getName() + " &cfoi rompida."));
         broadcastGuildMessage(guild, Utils.c("&c⚔ &4" + player.getName() + " &crompeu a aliança com &4" + ally.getName() + "&c."));
         saveGuildas();
+
+        if (MineSkyGuildas.getInstance().getLocator() != null) {
+            MineSkyGuildas.getInstance().getLocator().updateBetweenGuilds(guild, ally);
+        }
     }
 
     public static void addRival(Guilds guild, Guilds rival, Player player) {
@@ -266,6 +278,10 @@ public class GuildHandler {
         broadcastGuildMessage(guild, Utils.c("&c😡 &4" + player.getName() + " &cdeclarou rivalidade com o clã &f" + rival.getName() + "&c."));
         MineSkyGuildas.getInstance().getWarHandler().recordRivalry(guild.getId(), rival.getId());
         saveGuildas();
+
+        if (MineSkyGuildas.getInstance().getLocator() != null) {
+            MineSkyGuildas.getInstance().getLocator().updateBetweenGuilds(guild, rival);
+        }
     }
 
     public static void removeRival(Guilds guild, Guilds rival, Player player) {
@@ -275,21 +291,43 @@ public class GuildHandler {
         broadcastGuildMessage(rival, Utils.c("&a✅ &2" + player.getName() + " &aremoveu a rivalidade com o clã &f" + guild.getName() + "&a."));
         MineSkyGuildas.getInstance().getWarHandler().removeRivalryRecord(guild.getId(), rival.getId());
         saveGuildas();
+
+        if (MineSkyGuildas.getInstance().getLocator() != null) {
+            MineSkyGuildas.getInstance().getLocator().updateBetweenGuilds(guild, rival);
+        }
     }
 
     public static void addMember(Player player, Guilds guild) {
         guild.addMember(player.getUniqueId(), GuildRoles.RECRUIT, 0, System.currentTimeMillis());
         saveGuildas();
+
+        if (MineSkyGuildas.getInstance().getLocator() != null) {
+            MineSkyGuildas.getInstance().getLocator().updatePlayer(player);
+            MineSkyGuildas.getInstance().getLocator().updateGuild(guild);
+        }
     }
 
     public static void removeMember(Player player, Guilds guild) {
         guild.removeMember(player.getUniqueId());
         saveGuildas();
+
+        if (MineSkyGuildas.getInstance().getLocator() != null) {
+            MineSkyGuildas.getInstance().getLocator().onPlayerLeaveGuild(player);
+            MineSkyGuildas.getInstance().getLocator().updateGuild(guild);
+        }
     }
 
     public static void removeMember(UUID uuid, Guilds guild) {
         guild.removeMember(uuid);
         saveGuildas();
+
+        Player target = Bukkit.getPlayer(uuid);
+        if (MineSkyGuildas.getInstance().getLocator() != null) {
+            if (target != null) {
+                MineSkyGuildas.getInstance().getLocator().onPlayerLeaveGuild(target);
+            }
+            MineSkyGuildas.getInstance().getLocator().updateGuild(guild);
+        }
     }
 
     public static void addKill(Player player, Guilds guild) {
@@ -505,13 +543,17 @@ public class GuildHandler {
     }
 
     public static void deleteGuild(String id) {
-        if (!guildas.containsKey(id)) {
+        Guilds guild = getGuildByID(id);
+        if (guild == null) {
             MineSkyGuildas.l.warning(Utils.c("| Guilda com ID '" + id + "' não encontrada."));
             return;
         }
 
-        Utils.removeGuildsAlliesAndRivalsOnDelete(getGuildByID(id));
+        if (MineSkyGuildas.getInstance().getLocator() != null) {
+            MineSkyGuildas.getInstance().getLocator().onGuildDeleted(guild);
+        }
 
+        Utils.removeGuildsAlliesAndRivalsOnDelete(guild);
         MineSkyGuildas.getInstance().getWarHandler().removeAllRivalriesForGuild(id);
 
         guildas.remove(id);

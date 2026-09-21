@@ -189,14 +189,16 @@ public class WarHandler {
 
         String msg =
                 "&r\n" +
-                        "&4&l══════════ ⚔ GUERRA DE CLÃS ⚔ ══════════\n" +
+                        "&4&l═════════ ⚔ GUERRA DE CLÃS ⚔ ═════════\n" +
                         "&aO desafio foi &2ACEITO&a!\n" +
                         "&f" + session.getGuild1().getName() + " &8⚔ &f" + session.getGuild2().getName() + "\n" +
                         "&e🕒 A guerra acontecerá &6amanhã às &e15:30&6!\n" +
                         "&cPreparem seus equipamentos e organizem seu clã!\n" +
-                        "&4&l════════════════════════════════════════";
-        GuildHandler.broadcastGuildMessage(session.getGuild1(), msg);
-        GuildHandler.broadcastGuildMessage(session.getGuild2(), msg);
+                        "&4&l════════════════════════════════";
+        Bukkit.broadcastMessage(msg);
+        Bukkit.getOnlinePlayers().forEach(p ->
+                p.playSound(p, Sound.ENTITY_WITHER_SPAWN, 1, 1)
+                );
         MineSkyGuildas.l.info("[Clãs] Guerra entre " + session.getGuild1().getName() + " e " + session.getGuild2().getName() + " foi aceita ");
 
         inviteAlliesToWar(session);
@@ -296,6 +298,10 @@ public class WarHandler {
                             p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_AMBIENT, 1.0f, 1.0f);
                         });
                         disableFlyForWarParticipants(session);
+
+                        if (plugin.getLocator() != null) {
+                            plugin.getLocator().updateWarSession(session);
+                        }
                     }
                     continue;
                 }
@@ -368,6 +374,10 @@ public class WarHandler {
         session.setState(WarState.FINISHED);
         activeSessions.remove(session.getWarId());
         removeWarFromDatabase(session.getWarId());
+
+        if (plugin.getLocator() != null) {
+            plugin.getLocator().updateWarSession(session);
+        }
 
         Bukkit.broadcastMessage(" ");
         Bukkit.broadcastMessage(Utils.c("&4&l⚔ A GUERRA CHEGOU AO FIM! ⚔"));

@@ -12,10 +12,7 @@ import net.mineskyguildas.database.MongoDBManager;
 import net.mineskyguildas.database.PlayerDataManager;
 import net.mineskyguildas.enums.GuildChatType;
 import net.mineskyguildas.gui.*;
-import net.mineskyguildas.handlers.GuildHandler;
-import net.mineskyguildas.handlers.InviteHandler;
-import net.mineskyguildas.handlers.TraitorHandler;
-import net.mineskyguildas.handlers.WarHandler;
+import net.mineskyguildas.handlers.*;
 import net.mineskyguildas.handlers.requests.GuildRequestManager;
 import net.mineskyguildas.handlers.requests.ReagroupHandler;
 import net.mineskyguildas.hooks.GuildasPlaceholder;
@@ -43,6 +40,7 @@ public final class MineSkyGuildas extends JavaPlugin {
     private PlayerDataManager playerData;
     private WarHandler warHandler;
     private TraitorHandler traitorHandler;
+    private GuildLocatorHandler guildlocator;
 
     @Override
     public void onEnable() {
@@ -63,6 +61,8 @@ public final class MineSkyGuildas extends JavaPlugin {
         playerData = new PlayerDataManager();
         warHandler = new WarHandler(this);
         traitorHandler = new TraitorHandler(this);
+        guildlocator = new GuildLocatorHandler(this);
+        guildlocator.syncAllOnlinePlayers();
         registerEvents();
         registerCommands();
         registerHooks();
@@ -173,6 +173,10 @@ public final class MineSkyGuildas extends JavaPlugin {
 
     public TraitorHandler getTraitorHandler() {
         return traitorHandler;
+    }
+
+    public GuildLocatorHandler getLocator() {
+        return guildlocator;
     }
 
     public static MineSkyGuildas getInstance() {

@@ -1,11 +1,18 @@
 package net.mineskyguildas.hooks;
 
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldguard.LocalPlayer;
 import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
+import com.sk89q.worldguard.protection.flags.Flag;
+import com.sk89q.worldguard.protection.flags.StateFlag;
+import com.sk89q.worldguard.protection.flags.registry.FlagConflictException;
+import com.sk89q.worldguard.protection.flags.registry.FlagRegistry;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
+import com.sk89q.worldguard.protection.regions.RegionQuery;
 import net.mineskyguildas.utils.Utils;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -16,6 +23,65 @@ import java.util.List;
 import java.util.Map;
 
 public class WorldGuardHook {
+    public static StateFlag MINESKYGUILDA_XP_FLAG;
+    public static StateFlag MINESKYGUILDA_FRIENDLY_FIRE_FLAG;
+
+    public static void registerFlags() {
+        FlagRegistry registry = WorldGuard.getInstance().getFlagRegistry();
+
+        // 1. Registrar a flag de XP
+        try {
+            StateFlag xpFlag = new StateFlag("mineskyguilda-xp", true);
+            registry.register(xpFlag);
+            MINESKYGUILDA_XP_FLAG = xpFlag;
+        } catch (FlagConflictException e) {
+            Flag<?> existing = registry.get("mineskyguilda-xp");
+            if (existing instanceof StateFlag) {
+                MINESKYGUILDA_XP_FLAG = (StateFlag) existing;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // 2. Registrar a flag de Friendly Fire
+        try {
+            StateFlag ffFlag = new StateFlag("mineskyguilda-friendly-fire", true);
+            registry.register(ffFlag);
+            MINESKYGUILDA_FRIENDLY_FIRE_FLAG = ffFlag;
+        } catch (FlagConflictException e) {
+            Flag<?> existing = registry.get("mineskyguilda-friendly-fire");
+            if (existing instanceof StateFlag) {
+                MINESKYGUILDA_FRIENDLY_FIRE_FLAG = (StateFlag) existing;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static boolean isXpAllowed(Player player, Location location) {
+        return checkFlag(player, location, MINESKYGUILDA_XP_FLAG);
+    }
+
+    public static boolean isFriendlyFireAllowed(Player player, Location location) {
+        return checkFlag(player, location, MINESKYGUILDA_FRIENDLY_FIRE_FLAG);
+    }
+
+    private static boolean checkFlag(Player player, Location location, StateFlag flag) {
+        if (flag == null) {
+            return true;
+        }
+
+        try {
+            RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
+            RegionQuery query = container.createQuery();
+            LocalPlayer localPlayer = WorldGuardPlugin.inst().wrapPlayer(player);
+
+            return query.testState(BukkitAdapter.adapt(location), localPlayer, flag);
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
     public static List<ProtectedRegion> getRegions(World bukkitWorld) {
         RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
         RegionManager manager = container.get(BukkitAdapter.adapt(bukkitWorld));

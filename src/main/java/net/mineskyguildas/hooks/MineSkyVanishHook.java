@@ -7,4 +7,8 @@ public class MineSkyVanishHook {
     public static boolean isPlayerVanished(Player player) {
         return VanishAPI.isInvisible(player);
     }
+
+    public static boolean isPlayerVanished(String nick) {
+        return VanishAPI.getAllInvisiblePlayers().contains(nick);
+    }
 }

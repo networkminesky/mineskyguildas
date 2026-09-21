@@ -5,6 +5,8 @@ api-version: '26.1'
 softdepend:
   - PlaceholderAPI
   - WorldGuard
+depend:
+  - MineSkyGameplay
 authors: [zBrunoC (Bruno C.)]
 folia-supported: true
 

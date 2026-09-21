@@ -57,9 +57,16 @@ public class GuildRequestHandler {
     }
 
     public void sendRequest(Guilds requester, Guilds target, Player player) {
+        if (target == null || requester == null) return;
+
         String id = target.getId();
         pendingRequests.put(id, requester);
-        this.player.put(id, player);
+
+        if (player != null) {
+            this.player.put(id, player);
+        } else {
+            this.player.remove(id);
+        }
 
         if (type == GuildRequestType.WAR) {
             notifyTargetGuild(target, requester);
@@ -72,7 +79,10 @@ public class GuildRequestHandler {
                 notifyTargetGuild(target, requester);
             }, 5L * 60 * 20L, 5L * 60 * 20L);
 
-            tasks.put(id, task);
+            ScheduledTask oldTask = tasks.put(id, task);
+            if (oldTask != null) {
+                oldTask.cancel();
+            }
             return;
         }
 
@@ -87,7 +97,10 @@ public class GuildRequestHandler {
             }
         }, 1L, 20L * 60);
 
-        tasks.put(id, task);
+        ScheduledTask oldTask = tasks.put(id, task);
+        if (oldTask != null) {
+            oldTask.cancel();
+        }
     }
 
     private boolean notifyTargetGuild(Guilds target, Guilds requester) {

@@ -9,6 +9,7 @@ import net.mineskyguildas.handlers.WarHandler;
 import net.mineskyguildas.handlers.requests.GuildRequestType;
 import net.mineskyguildas.utils.Utils;
 import net.mineskyguildas.war.WarSession;
+import net.mineskyguildas.war.WarState;
 import org.bukkit.entity.Player;
 
 import java.util.Collections;
@@ -29,7 +30,7 @@ public class GuerraSubCommand extends SubCommand {
 
     @Override
     public String getUsage() {
-        return "/clan guerra <clã> ou /clan guerra [aceitar|recusar] <clã>";
+        return "/clan guerra <clã>, /clan guerra [aceitar|recusar] <clã> ou /clan guerra convidar [aliado]";
     }
 
     @Override
@@ -51,12 +52,98 @@ public class GuerraSubCommand extends SubCommand {
         }
 
         if (args.length < 2) {
-            player.sendMessage(Utils.c("&c❌ Use: /clan guerra <tag/nome> ou /clan guerra [aceitar/recusar] <tag/nome>"));
+            player.sendMessage(Utils.c("&c❌ Use: /clan guerra <tag/nome>, /clan guerra [aceitar/recusar] <tag/nome> ou /clan guerra convidar [aliado]"));
             return;
         }
 
         WarHandler warHandler = MineSkyGuildas.getInstance().getWarHandler();
         String action = args[1].toLowerCase();
+
+        if (action.equals("convidar") || action.equals("convidaraliado") || action.equals("convidaraliados") || action.equals("chamar")) {
+            if (!GuildRoles.isLeadership(myGuild.getRole(player.getUniqueId()))) {
+                player.sendMessage(Utils.c("&c❌ Você precisa ser Líder ou Sub-Líder para convidar aliados para a guerra!"));
+                return;
+            }
+
+            Optional<WarSession> warOpt = warHandler.getActiveSessions().values().stream()
+                    .filter(s -> (s.getGuild1().getId().equals(myGuild.getId()) || s.getGuild2().getId().equals(myGuild.getId()))
+                            && (s.getState() == WarState.SCHEDULED || s.getState() == WarState.DECLARED))
+                    .findFirst();
+
+            if (warOpt.isEmpty()) {
+                player.sendMessage(Utils.c("&c❌ Seu clã não possui nenhuma guerra agendada no momento!"));
+                return;
+            }
+
+            WarSession session = warOpt.get();
+            Guilds enemy = session.getGuild1().getId().equals(myGuild.getId()) ? session.getGuild2() : session.getGuild1();
+
+            if (myGuild.getAllies() == null || myGuild.getAllies().isEmpty()) {
+                player.sendMessage(Utils.c("&c❌ Seu clã não possui nenhum clã aliado!"));
+                return;
+            }
+
+            if (args.length >= 3) {
+                String targetTagOrName = args[2];
+                Guilds ally = GuildHandler.getGuildByTag(targetTagOrName);
+                if (ally == null) {
+                    ally = GuildHandler.getGuilds().values().stream()
+                            .filter(g -> g.getName().equalsIgnoreCase(targetTagOrName))
+                            .findFirst().orElse(null);
+                }
+
+                if (ally == null) {
+                    player.sendMessage(Utils.c("&c❌ Clã aliado não encontrado!"));
+                    return;
+                }
+
+                if (ally.getId().equals(myGuild.getId())) {
+                    player.sendMessage(Utils.c("&c❌ Você não pode convidar seu próprio clã!"));
+                    return;
+                }
+
+                if (!myGuild.isAlly(ally)) {
+                    player.sendMessage(Utils.c("&c❌ O clã &f" + ally.getName() + " &cnão é aliado do seu clã!"));
+                    return;
+                }
+
+                if (ally.isAlly(enemy)) {
+                    player.sendMessage(Utils.c("&c❌ O clã &f" + ally.getName() + " &ctambém é aliado do inimigo (&f" + enemy.getName() + "&c) e deve permanecer neutro!"));
+                    return;
+                }
+
+                if (session.getGuild1Supporters().contains(ally.getId()) || session.getGuild2Supporters().contains(ally.getId())) {
+                    player.sendMessage(Utils.c("&c❌ O clã &f" + ally.getName() + " &cjá está participando desta guerra!"));
+                    return;
+                }
+
+                MineSkyGuildas.getInstance().getRequestManager().getHandler(GuildRequestType.WAR).sendRequest(myGuild, ally, player);
+                player.sendMessage(Utils.c("&a✔ Convite de guerra enviado com sucesso para o clã aliado &f" + ally.getName() + "&a!"));
+                GuildHandler.broadcastGuildMessage(myGuild, "&e⚔ &f" + player.getName() + " &econvidou o clã aliado &f" + ally.getName() + " &epara apoiar na guerra!");
+                MineSkyGuildas.l.info("[Clãs] " + player.getName() + " convidou o clã aliado " + ally.getName() + " para apoiar na guerra contra " + enemy.getName());
+                return;
+            }
+
+            int sent = 0;
+            for (String allyId : myGuild.getAllies()) {
+                Guilds ally = GuildHandler.getGuildByID(allyId);
+                if (ally == null) continue;
+                if (ally.isAlly(enemy)) continue;
+                if (session.getGuild1Supporters().contains(ally.getId()) || session.getGuild2Supporters().contains(ally.getId())) continue;
+
+                MineSkyGuildas.getInstance().getRequestManager().getHandler(GuildRequestType.WAR).sendRequest(myGuild, ally, player);
+                sent++;
+            }
+
+            if (sent > 0) {
+                player.sendMessage(Utils.c("&a✔ Convites de guerra reenviados para &e" + sent + " &aclã(s) aliado(s)!"));
+                GuildHandler.broadcastGuildMessage(myGuild, "&e⚔ &f" + player.getName() + " &ereenviou convites de guerra para todos os clãs aliados!");
+                MineSkyGuildas.l.info("[Clãs] " + player.getName() + " reenviou convites de guerra para os aliados do clã " + myGuild.getName());
+            } else {
+                player.sendMessage(Utils.c("&c❌ Nenhum clã aliado disponível para receber convites (ou todos já estão participando/são neutros)."));
+            }
+            return;
+        }
 
         if (action.equals("aceitar") || action.equals("recusar")) {
             if (!GuildRoles.isLeadership(myGuild.getRole(player.getUniqueId()))) {
@@ -105,8 +192,8 @@ public class GuerraSubCommand extends SubCommand {
                 }
 
                 if (action.equals("recusar")) {
-                    if (MineSkyGuildas.getInstance().getRequestManager().getHandler(GuildRequestType.WAR).hasRequest(myGuild)) {
-                        player.sendMessage(Utils.c("&c❌ Seu clã já recusou!"));
+                    if (!MineSkyGuildas.getInstance().getRequestManager().getHandler(GuildRequestType.WAR).hasRequest(myGuild)) {
+                        player.sendMessage(Utils.c("&c❌ Seu clã não possui convites pendentes deste clã!"));
                         return;
                     }
                 }

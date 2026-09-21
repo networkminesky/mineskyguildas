@@ -54,7 +54,8 @@ public class GuildCommand implements CommandExecutor {
                 new TraitorsSubCommand(),
                 new DadosAdminSubCommand(),
                 new TrustSubCommand(),
-                new NoticeboardAdminSubCommand()
+                new NoticeboardAdminSubCommand(),
+                new GuerrasSubCommand()
         ).forEach(this::register);
     }
 
