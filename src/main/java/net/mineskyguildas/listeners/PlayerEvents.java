@@ -1,11 +1,8 @@
 package net.mineskyguildas.listeners;
 
-import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import io.lumine.mythic.bukkit.events.MythicMobDeathEvent;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
-import net.minesky.mineskygameplay.locatorapi.LocatorAPI;
-import net.minesky.mineskygameplay.locatorapi.LocatorWorldMode;
 import net.mineskyguildas.MineSkyGuildas;
 import net.mineskyguildas.data.Guilds;
 import net.mineskyguildas.data.Notice;
@@ -13,8 +10,6 @@ import net.mineskyguildas.handlers.GuildHandler;
 import net.mineskyguildas.handlers.requests.GuildRequestType;
 import net.mineskyguildas.hooks.WorldGuardHook;
 import net.mineskyguildas.utils.Utils;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
