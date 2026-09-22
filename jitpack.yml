@@ -1,7 +1,2 @@
-before_install:
-  - curl -s "https://download.java.net/java/early_access/jdk25/latest/GPL/openjdk-25_linux-x64_bin.tar.gz" -o jdk25.tar.gz
-  - mkdir -p /home/jitpack/jdk25
-  - tar -xzf jdk25.tar.gz -C /home/jitpack/jdk25 --strip-components=1
-  - export JAVA_HOME=/home/jitpack/jdk25
-  - export PATH=$JAVA_HOME/bin:$PATH
-  - java -version
+jdk:
+  - openjdk25
