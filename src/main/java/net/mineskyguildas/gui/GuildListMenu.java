@@ -42,19 +42,17 @@ public class GuildListMenu implements Listener {
         return it;
     }
 
-    public static ItemStack simpleButton(ItemStack it, String name, String... lore) {
-        ItemMeta im = it.getItemMeta();
-        im.setDisplayName("§b§l" + Utils.c(name));
-        im.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
-        im.setLore(Arrays.stream(lore).map(a -> Utils.c("&7" + a)).collect(Collectors.toList()));
-        it.setItemMeta(im);
-        return it;
-    }
-
     public static void reorganizeItems(Player player, Inventory inv, int page) {
         List<Guilds> guildsList = new ArrayList<>(GuildHandler.getGuilds().values());
 
-        int guildsPerPage = 45;
+        int[] availableSlots = {
+                10, 11, 12, 13, 14, 15, 16,
+                19, 20, 21, 22, 23, 24, 25,
+                28, 29, 30, 31, 32, 33, 34,
+                37, 38, 39, 40, 41, 42, 43
+        };
+
+        int guildsPerPage = availableSlots.length; // 28
         int maxPage = (int) Math.ceil((double) guildsList.size() / guildsPerPage);
         if (maxPage == 0) maxPage = 1;
 
@@ -75,26 +73,29 @@ public class GuildListMenu implements Listener {
         int start = (page - 1) * guildsPerPage;
         int end = Math.min(start + guildsPerPage, guildsList.size());
 
-        int slot = 9;
+        MineSkyGuildas plugin = MineSkyGuildas.getInstance();
+
+        int slotIndex = 0;
         for (int i = start; i < end; i++) {
-
-            if (slot % 9 == 0 || slot % 9 == 8) {
-                slot++;
-                if (slot >= 45) break;
-            }
-
             Guilds g = guildsList.get(i);
             if (g == null) continue;
-            int finalSlot = slot;
-            Utils.getGuildInfoAsync(g, it -> inv.setItem(finalSlot, it));
-            slot++;
 
-            if (slot >= 45) break;
+            int targetSlot = availableSlots[slotIndex++];
+
+            Utils.getGuildInfoAsync(g, it -> {
+                player.getScheduler().run(plugin, task -> {
+                    inv.setItem(targetSlot, it);
+                }, null);
+            });
         }
 
-        inv.setItem(45, simpleButton(Material.ARROW, "Página Anterior", "Voltar uma página."));
+        if (page > 1) {
+            inv.setItem(45, simpleButton(Material.ARROW, "Página Anterior", "Voltar para a página " + (page - 1) + "."));
+        }
         inv.setItem(49, simpleButton(Material.RED_WOOL, "Voltar", "Voltar para o menu anterior."));
-        inv.setItem(53, simpleButton(Material.ARROW, "Próxima Página", "Avançar uma página."));
+        if (page < maxPage) {
+            inv.setItem(53, simpleButton(Material.ARROW, "Próxima Página", "Avançar para a página " + (page + 1) + "."));
+        }
     }
 
     public static void openMainMenu(Player player) {
@@ -102,7 +103,7 @@ public class GuildListMenu implements Listener {
     }
 
     public static void openMainMenu(Player player, int page) {
-        Inventory inv = Bukkit.createInventory(null, 54, Utils.c("§8Clãs — Página 1"));
+        Inventory inv = Bukkit.createInventory(null, 54, Utils.c("§8Clãs — Página " + page));
         inventories.put(player, inv);
         reorganizeItems(player, inv, page);
         player.openInventory(inv);

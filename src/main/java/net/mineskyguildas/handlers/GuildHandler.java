@@ -7,6 +7,7 @@ import net.mineskyguildas.data.MemberData;
 import net.mineskyguildas.enums.GuildRoles;
 import net.mineskyguildas.data.Guilds;
 import net.mineskyguildas.data.Notice;
+import net.mineskyguildas.hooks.MineSkyVanishHook;
 import net.mineskyguildas.utils.Utils;
 import org.bson.Document;
 import org.bukkit.Bukkit;
@@ -203,7 +204,7 @@ public class GuildHandler {
     }
 
     public static String getOnlineMembers(Guilds guild) {
-        return guild.getMembers().keySet().stream().filter(uuid -> Bukkit.getPlayer(uuid) != null).count()
+        return guild.getMembers().keySet().stream().filter(uuid -> Bukkit.getPlayer(uuid) != null).filter(uuid -> !MineSkyVanishHook.isPlayerVanished(uuid)).count()
                 + "/" + guild.getMembers().size();
     }
 

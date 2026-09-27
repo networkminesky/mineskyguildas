@@ -28,6 +28,8 @@ import java.util.logging.Logger;
 
 public final class MineSkyGuildas extends JavaPlugin {
 
+    private static MineSkyGuildas instance;
+
     public static Logger l;
     public MongoDBManager mm;
     public MongoCollection<Document> coll;
@@ -44,6 +46,7 @@ public final class MineSkyGuildas extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        instance = this;
         l = this.getLogger();
         l.info("    __  ___    _                  _____    __              ______            _     __       __                ");
         l.info("   /  |/  /   (_)   ____   ___   / ___/   / /__   __  __  / ____/  __  __   (_)   / /  ____/ /  ____ _   _____");
@@ -180,6 +183,6 @@ public final class MineSkyGuildas extends JavaPlugin {
     }
 
     public static MineSkyGuildas getInstance() {
-        return MineSkyGuildas.getPlugin(MineSkyGuildas.class);
+        return instance;
     }
 }
