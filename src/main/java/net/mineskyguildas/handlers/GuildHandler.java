@@ -35,6 +35,11 @@ public class GuildHandler {
             Document meta = (Document) doc.get("meta");
             String name = meta != null ? meta.getString("name") : null;
             String tag = meta != null ? meta.getString("tag") : null;
+
+            if (tag != null) {
+                tag = Utils.toSmallCaps(tag);
+            }
+
             String description = meta != null ? meta.getString("description") : null;
             int level = meta != null ? meta.getInteger("level") : 0;
             double xp = meta != null ? meta.getDouble("xp") : 0;
@@ -50,6 +55,7 @@ public class GuildHandler {
                     level,
                     xp,
                     balance);
+
             doc.getList("members", Document.class).forEach(m -> {
                 UUID playerUUID = UUID.fromString(m.getString("uuid"));
                 GuildRoles role = GuildRoles.valueOf(m.getString("role"));
@@ -57,6 +63,7 @@ public class GuildHandler {
                 long joinedAt = m.containsKey("joinedAt") ? m.getLong("joinedAt") : System.currentTimeMillis();
                 g.addMember(playerUUID, role, kills, joinedAt);
             });
+
             assert meta != null;
             g.setBanner(meta.containsKey("banner-item") ? Utils.decodeItem(meta.getString("banner-item")) : null);
             g.setFriendlyFire(friendly_fire);
@@ -64,6 +71,7 @@ public class GuildHandler {
             g.setDescription(description);
             g.getRivals().addAll(doc.getList("rivals", String.class));
             g.getAllies().addAll(doc.getList("allies", String.class));
+
             if (doc.containsKey("notice-board")) {
                 List<Document> noticesDocs = (List<Document>) doc.get("notice-board");
                 List<Notice> notices = new ArrayList<>();
@@ -74,6 +82,7 @@ public class GuildHandler {
                 }
                 g.setNoticeBoard(notices);
             }
+
             guildas.put(id, g);
         }
     }
@@ -164,10 +173,10 @@ public class GuildHandler {
             return true;
         }
 
-        tag = Utils.getTag(tag);
-        String finalTag = tag;
-        return guildas.entrySet().stream()
-                .anyMatch(id -> finalTag.equalsIgnoreCase(Utils.getTag(id.getValue().getTag())));
+        String normalized = Utils.normalizeTag(tag);
+        return guildas.values().stream()
+                .filter(g -> g.getTag() != null)
+                .anyMatch(g -> Utils.normalizeTag(g.getTag()).equalsIgnoreCase(normalized));
     }
 
     public static boolean doesGuildTagExist(String tag, String ignoreGuildId) {
@@ -175,12 +184,13 @@ public class GuildHandler {
             return false;
         }
 
-        String finalTag = Utils.getTag(tag);
-        if (finalTag == null) return false;
+        String normalized = Utils.normalizeTag(tag);
+        if (normalized.isEmpty()) return false;
 
         return guildas.values().stream()
+                .filter(g -> g.getTag() != null)
                 .anyMatch(g -> (ignoreGuildId == null || !g.getId().equals(ignoreGuildId)) &&
-                        Utils.getTag(g.getTag()).equalsIgnoreCase(finalTag));
+                        Utils.normalizeTag(g.getTag()).equalsIgnoreCase(normalized));
     }
 
     public static String getGuildName(String id) {
@@ -242,8 +252,12 @@ public class GuildHandler {
     }
 
     public static Guilds getGuildByTag(String tag) {
+        if (tag == null || tag.isEmpty()) return null;
+
+        String normalizedTarget = Utils.normalizeTag(tag);
+
         return guildas.values().stream()
-                .filter(g -> Utils.getTag(g.getTag()).equalsIgnoreCase(tag))
+                .filter(g -> g.getTag() != null && Utils.normalizeTag(g.getTag()).equalsIgnoreCase(normalizedTarget))
                 .findFirst()
                 .orElse(null);
     }
@@ -383,7 +397,6 @@ public class GuildHandler {
         }
     }
 
-
     public static GuildRoles promoteRole(GuildRoles current) {
         return switch (current) {
             case RECRUIT -> GuildRoles.RECRUIT;
@@ -405,7 +418,6 @@ public class GuildHandler {
             case RECRUIT -> GuildRoles.RECRUIT;
         };
     }
-
 
     public static void setBanner(ItemStack item, Guilds guild) {
         guild.setBanner(item);
@@ -503,7 +515,6 @@ public class GuildHandler {
                 .filter(p -> GuildRoles.isLeadership(guilds.getRole(p.getUniqueId())))
                 .forEach(p -> p.sendMessage(prefix));
 
-
         Bukkit.getOnlinePlayers().stream()
                 .filter(p -> !GuildRoles.isLeadership(guilds.getRole(p.getUniqueId())))
                 .filter(p -> p.hasPermission("mineskyguildas.spy"))
@@ -518,7 +529,6 @@ public class GuildHandler {
                 });
         Bukkit.getConsoleSender().sendMessage("[SPY] [LÍDERES] [" + Utils.getTag(tag) + "] " + name + " (" + role.toUpperCase() + "): " + message);
     }
-
 
     public static void addXpToGuild(UUID player, double xp) {
         Guilds guild = getGuildByPlayer(player);

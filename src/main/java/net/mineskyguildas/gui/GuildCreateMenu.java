@@ -30,7 +30,6 @@ public class GuildCreateMenu implements Listener {
     private static final HashMap<Player, GuildBuilder> builderHashMap = new HashMap<>();
     public static HashMap<Player, Inventory> inventories = new HashMap<>();
 
-
     public GuildCreateMenu(MineSkyGuildas plugin) {
         this.plugin = plugin;
     }
@@ -129,7 +128,6 @@ public class GuildCreateMenu implements Listener {
         assert builder != null;
 
         switch(slot) {
-            // Modificar nome do item
             case 10 -> {
                 switch(clickType) {
                     case RIGHT -> {
@@ -157,7 +155,7 @@ public class GuildCreateMenu implements Listener {
                 }
             }
 
-            // Global
+            // Definir Tag
             case 13 -> {
                 switch(clickType) {
                     case RIGHT -> {
@@ -175,13 +173,17 @@ public class GuildCreateMenu implements Listener {
                                 reopenInventory(p);
                                 return;
                             }
-                            if (GuildHandler.doesGuildTagExist(response)) {
+
+                            String formattedTag = Utils.toSmallCaps(response);
+
+                            if (GuildHandler.doesGuildTagExist(formattedTag)) {
                                 p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO,1, 1);
                                 p.sendMessage(Utils.c("&c❌ Essa tag já está em uso por outro clã. Tente uma diferente!"));
                                 reopenInventory(p);
                                 return;
                             }
-                            builder.setTag(response);
+
+                            builder.setTag(formattedTag);
                             reopenInventory(p);
                         }
 
@@ -193,8 +195,6 @@ public class GuildCreateMenu implements Listener {
                 }
             }
 
-
-            // Salvar
             case 16 -> {
                 switch(clickType) {
                     case RIGHT -> {
@@ -203,7 +203,7 @@ public class GuildCreateMenu implements Listener {
                         return;
                     }
                     case LEFT -> {
-                        if (builder.getTag() == null | builder.getDisplayName() == null) {
+                        if (builder.getTag() == null || builder.getDisplayName() == null) {
                             p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO,1, 1);
                             p.sendMessage(Utils.c("&c⚠ Você ainda não escolheu o nome e a tag do seu clã! Personalize antes de salvar."));
                             return;
@@ -221,7 +221,7 @@ public class GuildCreateMenu implements Listener {
                         if (event.isCancelled()) {
                             p.closeInventory();
                             builderHashMap.remove(p);
-                            p.sendMessage((event.CancelledMessage == null? Utils.c("&c⚠ Ops! A criação do clã foi interrompida pela API.") : event.CancelledMessage));
+                            p.sendMessage((event.CancelledMessage == null ? Utils.c("&c⚠ Ops! A criação do clã foi interrompida pela API.") : event.CancelledMessage));
                             p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO,1, 1);
                             return;
                         }
@@ -244,6 +244,5 @@ public class GuildCreateMenu implements Listener {
             }
             case LEFT -> p.playSound(p.getLocation(), Sound.ENTITY_CHICKEN_EGG, 0.5f, 1);
         }
-
     }
 }

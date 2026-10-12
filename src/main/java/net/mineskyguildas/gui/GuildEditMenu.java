@@ -1,14 +1,11 @@
 package net.mineskyguildas.gui;
 
 import net.mineskyguildas.MineSkyGuildas;
-import net.mineskyguildas.api.events.GuildCreateEvent;
-import net.mineskyguildas.builders.GuildBuilder;
 import net.mineskyguildas.config.Config;
 import net.mineskyguildas.data.Guilds;
 import net.mineskyguildas.data.MemberData;
 import net.mineskyguildas.enums.GuildRoles;
 import net.mineskyguildas.handlers.GuildHandler;
-import net.mineskyguildas.hooks.Vault;
 import net.mineskyguildas.utils.ChatInputCallback;
 import net.mineskyguildas.utils.Utils;
 import org.bukkit.Bukkit;
@@ -35,7 +32,6 @@ import static net.mineskyguildas.commands.GuildCommand.sendError;
 public class GuildEditMenu implements Listener {
     private final MineSkyGuildas plugin;
     public static HashMap<Player, Inventory> inventories = new HashMap<>();
-
 
     public GuildEditMenu(MineSkyGuildas plugin) {
         this.plugin = plugin;
@@ -148,13 +144,17 @@ public class GuildEditMenu implements Listener {
                                 reopenInventory(p);
                                 return;
                             }
-                            if (GuildHandler.doesGuildTagExist(response, g.getId())) {
+
+                            String formattedTag = Utils.toSmallCaps(response);
+
+                            if (GuildHandler.doesGuildTagExist(formattedTag, g.getId())) {
                                 p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO,1, 1);
                                 p.sendMessage(Utils.c("&c❌ Ops! Já existe um clã com essa Tag. Tente outra tag!"));
                                 reopenInventory(p);
                                 return;
                             }
-                            g.setTag(response);
+
+                            g.setTag(formattedTag);
                             GuildHandler.saveGuildas();
                             MineSkyGuildas.l.info("[Clãs] " + p.getName() + " editou a tag do clã " + g.getName() + " para  " + Utils.getTag(g.getTag()));
                             p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_YES,1, 1);
@@ -273,7 +273,7 @@ public class GuildEditMenu implements Listener {
                             g.setDescription(response);
                             GuildHandler.saveGuildas();
                             MineSkyGuildas.l.info("[Clãs] " + p.getName() + " editou a descrição do clã " + g.getName() + " para " + g.getDescription());
-                            p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO,1, 1);
+                            p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1, 1);
                             reopenInventory(p);
                         }
 
@@ -293,6 +293,5 @@ public class GuildEditMenu implements Listener {
             }
             case LEFT -> p.playSound(p.getLocation(), Sound.ENTITY_CHICKEN_EGG, 0.5f, 1);
         }
-
     }
 }

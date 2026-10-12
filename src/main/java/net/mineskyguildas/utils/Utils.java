@@ -139,6 +139,118 @@ public class Utils {
         return tag;
     }
 
+    public static String toSmallCaps(String text) {
+        if (text == null || text.isEmpty()) return text;
+
+        StringBuilder result = new StringBuilder();
+        int length = text.length();
+        int i = 0;
+
+        while (i < length) {
+            if (i + 7 < length && text.charAt(i) == '&' && text.charAt(i + 1) == '#') {
+                String hex = text.substring(i, i + 8);
+                if (hex.matches("(?i)&#[0-9a-f]{6}")) {
+                    result.append(hex);
+                    i += 8;
+                    continue;
+                }
+            }
+
+            if ((text.charAt(i) == '&' || text.charAt(i) == '§') && i + 1 < length) {
+                char next = text.charAt(i + 1);
+                if ("0123456789AaBbCcDdEeFfKkLlMmNnOoRrXx".indexOf(next) != -1) {
+                    result.append(text.charAt(i)).append(next);
+                    i += 2;
+                    continue;
+                }
+            }
+
+            char c = text.charAt(i);
+            result.append(charToSmallCap(c));
+            i++;
+        }
+
+        return result.toString();
+    }
+
+    private static char charToSmallCap(char c) {
+        switch (Character.toLowerCase(c)) {
+            case 'a': return 'ᴀ';
+            case 'b': return 'ʙ';
+            case 'c': return 'ᴄ';
+            case 'd': return 'ᴅ';
+            case 'e': return 'ᴇ';
+            case 'f': return 'ғ';
+            case 'g': return 'ɢ';
+            case 'h': return 'ʜ';
+            case 'i': return 'ɪ';
+            case 'j': return 'ᴊ';
+            case 'k': return 'ᴋ';
+            case 'l': return 'ʟ';
+            case 'm': return 'ᴍ';
+            case 'n': return 'ɴ';
+            case 'o': return 'ᴏ';
+            case 'p': return 'ᴘ';
+            case 'q': return 'ǫ';
+            case 'r': return 'ʀ';
+            case 's': return 's';
+            case 't': return 'ᴛ';
+            case 'u': return 'ᴜ';
+            case 'v': return 'ᴠ';
+            case 'w': return 'ᴡ';
+            case 'x': return 'x';
+            case 'y': return 'ʏ';
+            case 'z': return 'ᴢ';
+            default:  return c;
+        }
+    }
+
+    public static String normalizeTag(String tag) {
+        if (tag == null || tag.isEmpty()) return "";
+
+        String clean = getTag(tag);
+        if (clean == null) return "";
+
+        StringBuilder sb = new StringBuilder();
+        for (char c : clean.toCharArray()) {
+            sb.append(smallCapToNormal(c));
+        }
+
+        return sb.toString().toLowerCase();
+    }
+
+    private static char smallCapToNormal(char c) {
+        switch (c) {
+            case 'ᴀ': return 'a';
+            case 'ʙ': return 'b';
+            case 'ᴄ': return 'c';
+            case 'ᴅ': return 'd';
+            case 'ᴇ': return 'e';
+            case 'ғ': case 'ꜰ': return 'f';
+            case 'ɢ': return 'g';
+            case 'ʜ': return 'h';
+            case 'ɪ': return 'i';
+            case 'ᴊ': return 'j';
+            case 'ᴋ': return 'k';
+            case 'ʟ': return 'l';
+            case 'ᴍ': return 'm';
+            case 'ɴ': return 'n';
+            case 'ᴏ': return 'o';
+            case 'ᴘ': return 'p';
+            case 'ǫ': case 'ϙ': return 'q';
+            case 'ʀ': return 'r';
+            case 'ꜱ': return 's';
+            case 'ᴛ': return 't';
+            case 'ᴜ': return 'u';
+            case 'ᴠ': return 'v';
+            case 'ᴡ': return 'w';
+            case 'ʏ': return 'y';
+            case 'ᴢ': return 'z';
+            default:  return Character.toLowerCase(c);
+        }
+    }
+
+
     public static void getGuildInfo(Player p, Consumer<ItemStack> callback) {
         Guilds g = GuildHandler.getGuildByPlayer(p.getUniqueId());
         getGuildInfoAsync(g, callback);
