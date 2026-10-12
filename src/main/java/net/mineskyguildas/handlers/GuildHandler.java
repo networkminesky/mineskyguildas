@@ -1,12 +1,15 @@
 package net.mineskyguildas.handlers;
 
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.BulkWriteOptions;
+import com.mongodb.client.model.ReplaceOneModel;
 import com.mongodb.client.model.ReplaceOptions;
+import com.mongodb.client.model.WriteModel;
 import net.mineskyguildas.MineSkyGuildas;
-import net.mineskyguildas.data.MemberData;
-import net.mineskyguildas.enums.GuildRoles;
 import net.mineskyguildas.data.Guilds;
+import net.mineskyguildas.data.MemberData;
 import net.mineskyguildas.data.Notice;
+import net.mineskyguildas.enums.GuildRoles;
 import net.mineskyguildas.hooks.MineSkyVanishHook;
 import net.mineskyguildas.utils.Utils;
 import org.bson.Document;
@@ -15,12 +18,20 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 
 public class GuildHandler {
     private final MineSkyGuildas plugin = MineSkyGuildas.getInstance();
     private static MongoCollection<Document> coll;
     private static final Map<String, Guilds> guildas = new ConcurrentHashMap<>();
+
+    private static final Set<String> dirtyGuilds = ConcurrentHashMap.newKeySet();
+
+    private static final ExecutorService DB_EXECUTOR = Executors.newSingleThreadExecutor(r -> {
+        Thread thread = new Thread(r, "MineSkyGuildas-DB-Thread");
+        thread.setDaemon(true);
+        return thread;
+    });
 
     public GuildHandler() {
         coll = plugin.coll;
@@ -102,6 +113,7 @@ public class GuildHandler {
         List<Document> noticesDocs = g.getNoticeBoard().stream()
                 .map(n -> new Document("message", n.getMessage()).append("timestamp", n.getTimestamp()))
                 .toList();
+
         return new Document("_id", g.getId())
                 .append("leader", g.getLeader().toString())
                 .append("members", members)
@@ -120,29 +132,79 @@ public class GuildHandler {
                                 .append("banner-item", g.getBanner() != null ? Utils.encodeItem(g.getBanner()) : null));
     }
 
+    public static void saveGuild(Guilds g) {
+        if (g == null) return;
+        dirtyGuilds.add(g.getId());
+        flushDirty();
+    }
+
     public static void saveGuildas() {
-        Bukkit.getAsyncScheduler().runNow(MineSkyGuildas.getInstance(), scheduledTask -> {
-            guildas.values().forEach(g -> {
-                coll.replaceOne(
+        dirtyGuilds.addAll(guildas.keySet());
+        flushDirty();
+    }
+
+    private static void flushDirty() {
+        if (coll == null) return;
+        DB_EXECUTOR.execute(() -> {
+            if (dirtyGuilds.isEmpty()) return;
+
+            Set<String> toSave = new HashSet<>(dirtyGuilds);
+            dirtyGuilds.removeAll(toSave);
+
+            List<WriteModel<Document>> operations = new ArrayList<>();
+            for (String id : toSave) {
+                Guilds g = guildas.get(id);
+                if (g != null) {
+                    operations.add(new ReplaceOneModel<>(
+                            new Document("_id", g.getId()),
+                            guildToDoc(g),
+                            new ReplaceOptions().upsert(true)
+                    ));
+                }
+            }
+
+            if (!operations.isEmpty()) {
+                try {
+                    coll.bulkWrite(operations, new BulkWriteOptions().ordered(false));
+                } catch (Exception e) {
+                    MineSkyGuildas.l.severe("Erro ao salvar guildas no MongoDB: " + e.getMessage());
+                }
+            }
+        });
+    }
+
+    public static void saveAllSync() {
+        if (coll == null) return;
+        dirtyGuilds.addAll(guildas.keySet());
+        if (dirtyGuilds.isEmpty()) return;
+
+        List<WriteModel<Document>> operations = new ArrayList<>();
+        for (String id : dirtyGuilds) {
+            Guilds g = guildas.get(id);
+            if (g != null) {
+                operations.add(new ReplaceOneModel<>(
                         new Document("_id", g.getId()),
                         guildToDoc(g),
                         new ReplaceOptions().upsert(true)
-                );
-            });
-        });
+                ));
+            }
+        }
+        dirtyGuilds.clear();
+
+        if (!operations.isEmpty()) {
+            try {
+                coll.bulkWrite(operations, new BulkWriteOptions().ordered(false));
+            } catch (Exception e) {
+                MineSkyGuildas.l.severe("Erro no salvamento final das guildas: " + e.getMessage());
+            }
+        }
     }
 
     public static void createGuilda(String id, String name, String tag, Player lider) {
         Guilds guilda = new Guilds(id, name, tag, lider.getUniqueId(), 0, 0, 0);
         guildas.put(id, guilda);
 
-        Bukkit.getAsyncScheduler().runNow(MineSkyGuildas.getInstance(), task -> {
-            coll.replaceOne(
-                    new Document("_id", id),
-                    guildToDoc(guilda),
-                    new ReplaceOptions().upsert(true)
-            );
-        });
+        saveGuild(guilda);
 
         if (MineSkyGuildas.getInstance().getLocator() != null) {
             MineSkyGuildas.getInstance().getLocator().updatePlayer(lider);
@@ -194,19 +256,23 @@ public class GuildHandler {
     }
 
     public static String getGuildName(String id) {
-        return getGuildByID(id).getName();
+        Guilds g = getGuildByID(id);
+        return g != null ? g.getName() : "";
     }
 
     public static String getGuildTag(String id) {
-        return getGuildByID(id).getTag();
+        Guilds g = getGuildByID(id);
+        return g != null ? g.getTag() : "";
     }
 
     public static int getGuildLevel(String id) {
-        return getGuildByID(id).getLevel();
+        Guilds g = getGuildByID(id);
+        return g != null ? g.getLevel() : 0;
     }
 
     public static double getGuildXp(String id) {
-        return getGuildByID(id).getXp();
+        Guilds g = getGuildByID(id);
+        return g != null ? g.getXp() : 0.0;
     }
 
     public static Map<String, Guilds> getGuilds() {
@@ -214,8 +280,10 @@ public class GuildHandler {
     }
 
     public static String getOnlineMembers(Guilds guild) {
-        return guild.getMembers().keySet().stream().filter(uuid -> Bukkit.getPlayer(uuid) != null).filter(uuid -> !MineSkyVanishHook.isPlayerVanished(uuid)).count()
-                + "/" + guild.getMembers().size();
+        return guild.getMembers().keySet().stream()
+                .filter(uuid -> Bukkit.getPlayer(uuid) != null)
+                .filter(uuid -> !MineSkyVanishHook.isPlayerVanished(uuid))
+                .count() + "/" + guild.getMembers().size();
     }
 
     public static List<String> getAlliesTags(Guilds guild) {
@@ -267,7 +335,9 @@ public class GuildHandler {
         ally.addAlly(guild.getId());
         broadcastGuildMessage(guild, Utils.c("&b🤝 &3Seu clã selou uma aliança com &b" + ally.getName() + "&3!"));
         broadcastGuildMessage(ally, Utils.c("&3🤝 &b" + guild.getName() + " &3formou uma aliança com seu clã!"));
-        saveGuildas();
+
+        saveGuild(guild);
+        saveGuild(ally);
 
         if (MineSkyGuildas.getInstance().getLocator() != null) {
             MineSkyGuildas.getInstance().getLocator().updateBetweenGuilds(guild, ally);
@@ -279,7 +349,9 @@ public class GuildHandler {
         ally.removeAlly(guild);
         broadcastGuildMessage(ally, Utils.c("&4⚔ &cA aliança com &4" + guild.getName() + " &cfoi rompida."));
         broadcastGuildMessage(guild, Utils.c("&c⚔ &4" + player.getName() + " &crompeu a aliança com &4" + ally.getName() + "&c."));
-        saveGuildas();
+
+        saveGuild(guild);
+        saveGuild(ally);
 
         if (MineSkyGuildas.getInstance().getLocator() != null) {
             MineSkyGuildas.getInstance().getLocator().updateBetweenGuilds(guild, ally);
@@ -292,7 +364,9 @@ public class GuildHandler {
         broadcastGuildMessage(rival, Utils.c("&4⚔ &cO clã &f" + guild.getName() + " &cdeclarou rivalidade com a seu clã!"));
         broadcastGuildMessage(guild, Utils.c("&c😡 &4" + player.getName() + " &cdeclarou rivalidade com o clã &f" + rival.getName() + "&c."));
         MineSkyGuildas.getInstance().getWarHandler().recordRivalry(guild.getId(), rival.getId());
-        saveGuildas();
+
+        saveGuild(guild);
+        saveGuild(rival);
 
         if (MineSkyGuildas.getInstance().getLocator() != null) {
             MineSkyGuildas.getInstance().getLocator().updateBetweenGuilds(guild, rival);
@@ -305,7 +379,9 @@ public class GuildHandler {
         broadcastGuildMessage(guild, Utils.c("&2✌ &aO clã &f" + rival.getName() + " &aremoveu a rivalidade com a seu clã."));
         broadcastGuildMessage(rival, Utils.c("&a✅ &2" + player.getName() + " &aremoveu a rivalidade com o clã &f" + guild.getName() + "&a."));
         MineSkyGuildas.getInstance().getWarHandler().removeRivalryRecord(guild.getId(), rival.getId());
-        saveGuildas();
+
+        saveGuild(guild);
+        saveGuild(rival);
 
         if (MineSkyGuildas.getInstance().getLocator() != null) {
             MineSkyGuildas.getInstance().getLocator().updateBetweenGuilds(guild, rival);
@@ -314,7 +390,7 @@ public class GuildHandler {
 
     public static void addMember(Player player, Guilds guild) {
         guild.addMember(player.getUniqueId(), GuildRoles.RECRUIT, 0, System.currentTimeMillis());
-        saveGuildas();
+        saveGuild(guild);
 
         if (MineSkyGuildas.getInstance().getLocator() != null) {
             MineSkyGuildas.getInstance().getLocator().updatePlayer(player);
@@ -324,7 +400,7 @@ public class GuildHandler {
 
     public static void removeMember(Player player, Guilds guild) {
         guild.removeMember(player.getUniqueId());
-        saveGuildas();
+        saveGuild(guild);
 
         if (MineSkyGuildas.getInstance().getLocator() != null) {
             MineSkyGuildas.getInstance().getLocator().onPlayerLeaveGuild(player);
@@ -334,7 +410,7 @@ public class GuildHandler {
 
     public static void removeMember(UUID uuid, Guilds guild) {
         guild.removeMember(uuid);
-        saveGuildas();
+        saveGuild(guild);
 
         Player target = Bukkit.getPlayer(uuid);
         if (MineSkyGuildas.getInstance().getLocator() != null) {
@@ -347,7 +423,7 @@ public class GuildHandler {
 
     public static void addKill(Player player, Guilds guild) {
         guild.getMemberData(player.getUniqueId()).addKill();
-        saveGuildas();
+        saveGuild(guild);
     }
 
     public static void getMemberPromoteKills(Player player, Guilds guild) {
@@ -366,7 +442,7 @@ public class GuildHandler {
 
     public static void setRole(Player player, Guilds guild, GuildRoles role) {
         guild.getMemberData(player.getUniqueId()).setRole(role);
-        saveGuildas();
+        saveGuild(guild);
     }
 
     public static void promotePlayer(Player player, Guilds guild) {
@@ -375,7 +451,7 @@ public class GuildHandler {
 
         if (promoted != current) {
             guild.getMemberData(player.getUniqueId()).setRole(promoted);
-            saveGuildas();
+            saveGuild(guild);
         }
     }
 
@@ -383,7 +459,7 @@ public class GuildHandler {
         GuildRoles current = guild.getRole(player.getUniqueId());
         if (roles != current) {
             guild.getMemberData(player.getUniqueId()).setRole(roles);
-            saveGuildas();
+            saveGuild(guild);
         }
     }
 
@@ -393,7 +469,7 @@ public class GuildHandler {
 
         if (demoted != current) {
             guild.getMemberData(player.getUniqueId()).setRole(demoted);
-            saveGuildas();
+            saveGuild(guild);
         }
     }
 
@@ -421,7 +497,7 @@ public class GuildHandler {
 
     public static void setBanner(ItemStack item, Guilds guild) {
         guild.setBanner(item);
-        saveGuildas();
+        saveGuild(guild);
     }
 
     public static boolean hasGuild(Player player) {
@@ -534,23 +610,23 @@ public class GuildHandler {
         Guilds guild = getGuildByPlayer(player);
         if (guild != null) {
             guild.addXP(xp);
-            saveGuildas();
+            saveGuild(guild);
         }
     }
 
     public static void addNotice(Guilds guild, String message, Player sender) {
         guild.addNotice("&7[" + Utils.getTimeNow() + "] &b✉ &3" + sender.getName() + "&8: &f" + message);
-        saveGuildas();
+        saveGuild(guild);
     }
 
     public static void addNotice(Guilds guild, String message) {
         guild.addNotice("&7[" + Utils.getTimeNow() + "] &f" + message);
-        saveGuildas();
+        saveGuild(guild);
     }
 
     public static void removeNotice(Guilds guild, int index) {
         guild.removeNotice(index);
-        saveGuildas();
+        saveGuild(guild);
     }
 
     public static void deleteGuild(String id) {
@@ -568,13 +644,32 @@ public class GuildHandler {
         MineSkyGuildas.getInstance().getWarHandler().removeAllRivalriesForGuild(id);
 
         guildas.remove(id);
+        dirtyGuilds.remove(id);
 
-        Bukkit.getAsyncScheduler().runNow(MineSkyGuildas.getInstance(), task -> {
-            coll.deleteOne(new Document("_id", id));
+        DB_EXECUTOR.execute(() -> {
+            try {
+                coll.deleteOne(new Document("_id", id));
+            } catch (Exception e) {
+                MineSkyGuildas.l.severe("Erro ao deletar guilda no MongoDB: " + e.getMessage());
+            }
         });
 
         MineSkyGuildas.l.info(Utils.c("| Guilda com ID '" + id + "' foi deletada com sucesso."));
     }
 
-    public void close() { plugin.mm.close(); }
+    public void close() {
+        saveAllSync();
+        DB_EXECUTOR.shutdown();
+        try {
+            if (!DB_EXECUTOR.awaitTermination(5, TimeUnit.SECONDS)) {
+                DB_EXECUTOR.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            DB_EXECUTOR.shutdownNow();
+        }
+
+        if (plugin.mm != null) {
+            plugin.mm.close();
+        }
+    }
 }
