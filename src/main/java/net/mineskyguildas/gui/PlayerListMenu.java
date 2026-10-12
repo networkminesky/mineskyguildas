@@ -23,7 +23,8 @@ import org.bukkit.inventory.meta.SkullMeta;
 
 import java.text.DecimalFormat;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 public class PlayerListMenu implements Listener {
@@ -35,6 +36,13 @@ public class PlayerListMenu implements Listener {
     private static List<PlayerStats> statsCache = null;
     private static long lastCacheUpdate = 0;
     private static final long CACHE_DURATION_MS = 5 * 60 * 1000;
+    private static final AtomicBoolean isBuildingCache = new AtomicBoolean(false);
+
+    private static final ExecutorService RANKING_EXECUTOR = Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "MineSkyGuildas-Ranking-Worker");
+        t.setDaemon(true);
+        return t;
+    });
 
     public PlayerListMenu(MineSkyGuildas plugin) {
         this.plugin = plugin;
@@ -68,14 +76,6 @@ public class PlayerListMenu implements Listener {
         return skull;
     }
 
-    private static void runAsync(Runnable runnable) {
-        try {
-            Bukkit.getAsyncScheduler().runNow(MineSkyGuildas.getInstance(), task -> runnable.run());
-        } catch (Throwable t) {
-            Bukkit.getScheduler().runTaskAsynchronously(MineSkyGuildas.getInstance(), runnable);
-        }
-    }
-
     public static void reorganizeItems(Player viewer, Inventory inv, int page) {
         inv.clear();
 
@@ -95,38 +95,67 @@ public class PlayerListMenu implements Listener {
             return;
         }
 
-        viewer.sendMessage(Utils.c("&e⏳ Carregando ranking de jogadores..."));
-
-        runAsync(() -> {
-            List<OfflinePlayer> players = Arrays.asList(Bukkit.getOfflinePlayers());
-            List<PlayerStats> statsList = Collections.synchronizedList(new ArrayList<>());
-            List<CompletableFuture<Void>> futures = new ArrayList<>();
-
-            for (OfflinePlayer p : players) {
-                if (p.getName() == null) continue;
-                CompletableFuture<Void> future = new CompletableFuture<>();
-
-                MineSkyGuildas.getInstance().getPlayerData().getKills(p.getUniqueId(), kills ->
-                        MineSkyGuildas.getInstance().getPlayerData().getDeaths(p.getUniqueId(), deaths -> {
-                            double kdr = (deaths == 0 ? kills : ((double) kills / deaths));
-                            statsList.add(new PlayerStats(p, (int) kills, (int) deaths, kdr));
-                            future.complete(null);
-                        })
-                );
-
-                futures.add(future);
+        if (isBuildingCache.get()) {
+            viewer.sendMessage(Utils.c("&e⏳ O ranking está sendo processado. Tente abrir novamente em instantes..."));
+            if (statsCache != null) {
+                renderPage(viewer, inv, page, statsCache);
             }
+            return;
+        }
 
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenRun(() -> {
+        viewer.sendMessage(Utils.c("&e⏳ Carregando ranking de jogadores..."));
+        isBuildingCache.set(true);
+
+        RANKING_EXECUTOR.execute(() -> {
+            try {
+                OfflinePlayer[] allPlayers = Bukkit.getOfflinePlayers();
+                List<OfflinePlayer> players = new ArrayList<>();
+                for (OfflinePlayer op : allPlayers) {
+                    if (op.getName() != null && op.hasPlayedBefore()) {
+                        players.add(op);
+                    }
+                }
+
+                List<PlayerStats> statsList = Collections.synchronizedList(new ArrayList<>());
+                CountDownLatch latch = new CountDownLatch(players.size());
+
+                Semaphore throttle = new Semaphore(5);
+
+                for (OfflinePlayer p : players) {
+                    try {
+                        throttle.acquire();
+                    } catch (InterruptedException e) {
+                        latch.countDown();
+                        continue;
+                    }
+
+                    MineSkyGuildas.getInstance().getPlayerData().getPlayerStats(p.getUniqueId(), (kills, deaths, kdr) -> {
+                        try {
+                            statsList.add(new PlayerStats(p, kills, deaths, kdr));
+                        } finally {
+                            throttle.release();
+                            latch.countDown();
+                        }
+                    });
+                }
+
+                latch.await(40, TimeUnit.SECONDS);
+
                 statsList.sort(Comparator.comparingDouble(PlayerStats::getKdr).reversed());
 
                 statsCache = new ArrayList<>(statsList);
                 lastCacheUpdate = System.currentTimeMillis();
 
                 Utils.runOnPlayer(viewer, () -> {
-                    renderPage(viewer, inv, page, statsCache);
+                    if (inventories.containsKey(viewer)) {
+                        renderPage(viewer, inv, page, statsCache);
+                    }
                 });
-            });
+            } catch (Exception e) {
+                MineSkyGuildas.l.severe("Erro ao gerar ranking: " + e.getMessage());
+            } finally {
+                isBuildingCache.set(false);
+            }
         });
     }
 

@@ -659,9 +659,10 @@ public class GuildHandler {
 
     public void close() {
         saveAllSync();
+
         DB_EXECUTOR.shutdown();
         try {
-            if (!DB_EXECUTOR.awaitTermination(5, TimeUnit.SECONDS)) {
+            if (!DB_EXECUTOR.awaitTermination(2, TimeUnit.SECONDS)) {
                 DB_EXECUTOR.shutdownNow();
             }
         } catch (InterruptedException e) {
@@ -669,7 +670,11 @@ public class GuildHandler {
         }
 
         if (plugin.mm != null) {
-            plugin.mm.close();
+            CompletableFuture.runAsync(() -> {
+                try {
+                    plugin.mm.close();
+                } catch (Exception ignored) {}
+            });
         }
     }
 }

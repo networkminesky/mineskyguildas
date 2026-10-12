@@ -9,7 +9,9 @@ import net.minesky.core.databridge.callbacks.FindValueCallback;
 import net.minesky.core.databridge.callbacks.SetOneCallback;
 import org.bson.Document;
 
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PlayerDataManager {
 
@@ -21,7 +23,50 @@ public class PlayerDataManager {
         void onQueryDone(boolean value);
     }
 
+    public interface PlayerStatsCallback {
+        void onQueryDone(int kills, int deaths, double kdr);
+    }
+
+    private static final Map<UUID, CachedStats> statsCache = new ConcurrentHashMap<>();
+    private static final long CACHE_TTL_MS = 3 * 60 * 1000;
+
+    private record CachedStats(int kills, int deaths, double kdr, long timestamp) {
+        public boolean isExpired() {
+            return System.currentTimeMillis() - timestamp > CACHE_TTL_MS;
+        }
+    }
+
+    public void getPlayerStats(UUID uuid, PlayerStatsCallback callback) {
+        CachedStats cached = statsCache.get(uuid);
+        if (cached != null && !cached.isExpired()) {
+            callback.onQueryDone(cached.kills(), cached.deaths(), cached.kdr());
+            return;
+        }
+
+        PlayerDatabase.getPlayerDataAsync(uuid.toString(), new FindOneCallback() {
+            @Override
+            public void onQueryError(ErrorType errorType) {
+                callback.onQueryDone(0, 0, 0.0);
+            }
+
+            @Override
+            public void onQueryDone(Document document) {
+                if (document == null) {
+                    callback.onQueryDone(0, 0, 0.0);
+                    return;
+                }
+                int kills = parseIntSafe(document.get("kills"));
+                int deaths = parseIntSafe(document.get("deaths"));
+                double kdr = (deaths == 0) ? kills : ((double) kills / deaths);
+
+                statsCache.put(uuid, new CachedStats(kills, deaths, kdr, System.currentTimeMillis()));
+                callback.onQueryDone(kills, deaths, kdr);
+            }
+        });
+    }
+
     public void setKills(UUID uuid, int kills) {
+        statsCache.remove(uuid);
         PlayerDatabase.setPlayerData(uuid.toString(),
                 new UpdatedData("kills", kills),
                 new SetOneCallback() {
@@ -34,6 +79,7 @@ public class PlayerDataManager {
     }
 
     public void setDeaths(UUID uuid, int deaths) {
+        statsCache.remove(uuid);
         PlayerDatabase.setPlayerData(uuid.toString(),
                 new UpdatedData("deaths", deaths),
                 new SetOneCallback() {
@@ -89,6 +135,7 @@ public class PlayerDataManager {
     }
 
     public void addKill(UUID uuid, int kill) {
+        statsCache.remove(uuid);
         PlayerDatabase.getPlayerSpecificDataAsync(uuid.toString(), ValueType.INTEGER, "kills", new FindValueCallback() {
             @Override
             public void onQueryDone(Document document, Object o, boolean b) {
@@ -109,6 +156,7 @@ public class PlayerDataManager {
     }
 
     public void addDeath(UUID uuid, int death) {
+        statsCache.remove(uuid);
         PlayerDatabase.getPlayerSpecificDataAsync(uuid.toString(), ValueType.INTEGER, "deaths", new FindValueCallback() {
             @Override
             public void onQueryDone(Document document, Object o, boolean b) {
@@ -130,63 +178,15 @@ public class PlayerDataManager {
     }
 
     public void getKDR(UUID uuid, PlayerValueReturnCallback callback) {
-        PlayerDatabase.getPlayerDataAsync(uuid.toString(), new FindOneCallback() {
-            @Override
-            public void onQueryError(ErrorType errorType) {
-                callback.onQueryDone(0.0);
-            }
-
-            @Override
-            public void onQueryDone(Document document) {
-                if (document == null) {
-                    callback.onQueryDone(0.0);
-                    return;
-                }
-                int kills = parseIntSafe(document.get("kills"));
-                int deaths = parseIntSafe(document.get("deaths"));
-
-                double kdr = (deaths == 0) ? kills : ((double) kills / deaths);
-                callback.onQueryDone(kdr);
-            }
-        });
+        getPlayerStats(uuid, (kills, deaths, kdr) -> callback.onQueryDone(kdr));
     }
 
     public void getKills(UUID uuid, PlayerValueReturnCallback callback) {
-        PlayerDatabase.getPlayerDataAsync(uuid.toString(), new FindOneCallback() {
-            @Override
-            public void onQueryError(ErrorType errorType) {
-                callback.onQueryDone(0);
-            }
-
-            @Override
-            public void onQueryDone(Document document) {
-                if (document == null) {
-                    callback.onQueryDone(0);
-                    return;
-                }
-                int kills = parseIntSafe(document.get("kills"));
-                callback.onQueryDone(kills);
-            }
-        });
+        getPlayerStats(uuid, (kills, deaths, kdr) -> callback.onQueryDone(kills));
     }
 
     public void getDeaths(UUID uuid, PlayerValueReturnCallback callback) {
-        PlayerDatabase.getPlayerDataAsync(uuid.toString(), new FindOneCallback() {
-            @Override
-            public void onQueryError(ErrorType errorType) {
-                callback.onQueryDone(0);
-            }
-
-            @Override
-            public void onQueryDone(Document document) {
-                if (document == null) {
-                    callback.onQueryDone(0);
-                    return;
-                }
-                int deaths = parseIntSafe(document.get("deaths"));
-                callback.onQueryDone(deaths);
-            }
-        });
+        getPlayerStats(uuid, (kills, deaths, kdr) -> callback.onQueryDone(deaths));
     }
 
     public void getSpy(UUID uuid, PlayerBooleanReturnCallback callback) {

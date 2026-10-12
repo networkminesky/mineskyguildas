@@ -12,6 +12,9 @@ import net.mineskyguildas.MineSkyGuildas;
 import net.mineskyguildas.utils.Utils;
 import org.bson.Document;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
 public class MongoDBManager {
     private MongoClient client;
     private MongoDatabase db;
@@ -21,16 +24,33 @@ public class MongoDBManager {
         ServerApi serverApi = ServerApi.builder()
                 .version(ServerApiVersion.V1)
                 .build();
+
         MongoClientSettings settings = MongoClientSettings.builder()
                 .applyConnectionString(new ConnectionString(uri))
                 .serverApi(serverApi)
+                .applyToSocketSettings(builder -> builder
+                        .connectTimeout(5, TimeUnit.SECONDS)
+                        .readTimeout(5, TimeUnit.SECONDS)
+                )
+
+                .applyToClusterSettings(builder -> builder
+                        .serverSelectionTimeout(5, TimeUnit.SECONDS)
+                )
+
+                .applyToConnectionPoolSettings(builder -> builder
+                        .maxSize(30)
+                        .minSize(2)
+                        .maxWaitTime(3, TimeUnit.SECONDS)
+                        .maxConnectionIdleTime(60, TimeUnit.SECONDS)
+                        .maxConnectionLifeTime(30, TimeUnit.MINUTES)
+                )
                 .build();
 
         try {
             client = MongoClients.create(settings);
             db = client.getDatabase(dbName);
             guildas = db.getCollection("guildas");
-            MineSkyGuildas.l.info(Utils.c("| Conectado ao MongoDB!"));
+            MineSkyGuildas.l.info(Utils.c("| Conectado ao MongoDB com sucesso!"));
         } catch (Exception e) {
             MineSkyGuildas.l.severe(Utils.c("| Falha ao conectar ao MongoDB: " + e.getMessage()));
             e.printStackTrace();
@@ -42,30 +62,41 @@ public class MongoDBManager {
     }
 
     public MongoCollection<Document> getGuildWar() {
-        return db.getCollection("guild_wars");
+        return db != null ? db.getCollection("guild_wars") : null;
     }
 
     public MongoCollection<Document> getRivalryTimestamps() {
-        return db.getCollection("rivalry_timestamps");
+        return db != null ? db.getCollection("rivalry_timestamps") : null;
     }
 
     public MongoCollection<Document> getGuildTraitors() {
-        return db.getCollection("guild_traitors");
+        return db != null ? db.getCollection("guild_traitors") : null;
     }
 
     public MongoCollection<Document> getGuildTraitorCooldowns() {
-        return db.getCollection("guild_traitor_cooldowns");
+        return db != null ? db.getCollection("guild_traitor_cooldowns") : null;
     }
 
     public void close() {
         if (client != null) {
-            client.close();
-            MineSkyGuildas.l.info(Utils.c("| Desconectado do MongoDB."));
+            MongoClient clientToClose = client;
+            client = null;
+            db = null;
+            guildas = null;
+
+            CompletableFuture.runAsync(() -> {
+                try {
+                    clientToClose.close();
+                    MineSkyGuildas.l.info(Utils.c("| Desconectado do MongoDB com sucesso."));
+                } catch (Exception e) {
+                    MineSkyGuildas.l.warning(Utils.c("| Erro ao fechar conexão com MongoDB: " + e.getMessage()));
+                }
+            });
         }
     }
 
     public boolean isConnected() {
-        if (client == null) {
+        if (client == null || db == null) {
             return false;
         }
 

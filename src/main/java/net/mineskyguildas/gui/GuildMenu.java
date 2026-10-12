@@ -104,26 +104,22 @@ public class GuildMenu implements Listener {
             player.getScheduler().run(MineSkyGuildas.getInstance(), task -> inv.setItem(1, itemStack), null);
         });
 
-        MineSkyGuildas.getInstance().getPlayerData().getKills(player.getUniqueId(), kills -> {
-            MineSkyGuildas.getInstance().getPlayerData().getDeaths(player.getUniqueId(), deaths -> {
-                double kdr = (deaths == 0 ? kills : ((double) kills / deaths));
+        MineSkyGuildas.getInstance().getPlayerData().getPlayerStats(player.getUniqueId(), (kills, deaths, kdr) -> {
+            ItemStack playerHead = simpleButton(
+                    Material.PLAYER_HEAD,
+                    player,
+                    player.getName(),
+                    "• Suas informações de clã.",
+                    " ",
+                    "&bClã: &3" + (guild == null ? "Sem Clã" : guild.getName()) +
+                            (guild == null ? "" : " &b[&f" + guild.getTag() + "&b]"),
+                    "&bCargo: &3" + (guild == null ? "Nenhum" : GuildRoles.getLabelRole(guild.getRole(player.getUniqueId()))),
+                    "&bMortes: &3" + deaths,
+                    "&bKills: &3" + kills,
+                    "&bKDR: &3" + new DecimalFormat("0.00").format(kdr)
+            );
 
-                ItemStack playerHead = simpleButton(
-                        Material.PLAYER_HEAD,
-                        player,
-                        player.getName(),
-                        "• Suas informações de clã.",
-                        " ",
-                        "&bClã: &3" + (guild == null ? "Sem Clã" : guild.getName()) +
-                                (guild == null ? "" : " &b[&f" + guild.getTag() + "&b]"),
-                        "&bCargo: &3" + (guild == null ? "Nenhum" : GuildRoles.getLabelRole(guild.getRole(player.getUniqueId()))),
-                        "&bMortes: &3" + (int) deaths,
-                        "&bKills: &3" + (int) kills,
-                        "&bKDR: &3" + new DecimalFormat("0.00").format(kdr)
-                );
-
-                player.getScheduler().run(MineSkyGuildas.getInstance(), task -> inv.setItem(0, playerHead), null);
-            });
+            player.getScheduler().run(MineSkyGuildas.getInstance(), task -> inv.setItem(0, playerHead), null);
         });
     }
 
